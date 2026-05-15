@@ -10,7 +10,7 @@
  */
 
 const COMPANY_NAME = 'ShotPolish'
-const CONTACT_EMAIL = 'hello@shotpolish.com' // replace with your email
+const CONTACT_EMAIL = 'shotpolish.app@gmail.com' 
 const EFFECTIVE_DATE = '2025'
 
 export function PrivacyPolicy() {

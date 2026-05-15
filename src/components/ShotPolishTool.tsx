@@ -467,14 +467,24 @@ export function ShotPolishTool() {
         {/* Step 3: Headline */}
         <div style={{ ...s.step, flex: '2 1 220px' }}>
           <div style={s.stepNum}>3</div>
-          <div style={s.stepLabel}>Headline</div>
+          <div style={s.stepLabel}>
+            Headline
+            {headline !== INTENT_MAP[intent] && (
+              <button onClick={() => setHeadline(INTENT_MAP[intent])} style={s.resetField} title="Reset to default">↺</button>
+            )}
+          </div>
           <input value={headline} onChange={(e) => setHeadline(e.target.value)} style={s.input} placeholder="Your headline..." />
         </div>
 
         {/* Step 4: Callout */}
         <div style={{ ...s.step, flex: '2 1 220px' }}>
           <div style={s.stepNum}>4</div>
-          <div style={s.stepLabel}>Callout</div>
+          <div style={s.stepLabel}>
+            Callout
+            {callout !== CALLOUT_MAP[intent] && (
+              <button onClick={() => setCallout(CALLOUT_MAP[intent])} style={s.resetField} title="Reset to default">↺</button>
+            )}
+          </div>
           <input value={callout} onChange={(e) => setCallout(e.target.value)} style={s.input} placeholder="Callout label..." />
         </div>
 
@@ -508,6 +518,15 @@ export function ShotPolishTool() {
             <span style={{ color: theme.accent }}>⬡</span> Step 6 · Draw Focus Area
             {selection && <span style={{ ...s.badge, background: theme.accent }}>✓ Area set</span>}
           </div>
+
+          {/* Live text preview — always shows current headline/callout state */}
+          {imageUrl && (
+            <div style={s.liveTextBar}>
+              <div style={s.liveHeadline}>{headline || <span style={{ opacity: 0.3 }}>No headline</span>}</div>
+              {callout && <div style={{ ...s.liveCallout, background: theme.accent }}>📌 {callout}</div>}
+            </div>
+          )}
+
           {!imageUrl ? (
             <div
               style={s.dropzone}
@@ -687,6 +706,19 @@ const s: Record<string, React.CSSProperties> = {
     opacity: 0.5,
     fontWeight: 600,
     marginTop: -4,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  resetField: {
+    background: 'transparent',
+    border: 'none',
+    color: '#818cf8',
+    fontSize: 14,
+    cursor: 'pointer',
+    padding: 0,
+    lineHeight: 1,
+    opacity: 0.8,
   },
   select: {
     padding: '9px 12px',
@@ -825,5 +857,32 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     letterSpacing: '0.04em',
     boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+  },
+  liveTextBar: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: 8,
+    padding: '10px 12px',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  liveHeadline: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#ffffff',
+    textAlign: 'center' as const,
+    lineHeight: 1.4,
+    wordBreak: 'break-word' as const,
+  },
+  liveCallout: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#0f172a',
+    padding: '4px 12px',
+    borderRadius: 999,
   },
 }

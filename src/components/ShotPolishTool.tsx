@@ -22,11 +22,11 @@ const CALLOUT_MAP: Record<string, string> = {
 }
 
 const THEMES = [
-  { name: "Indigo",   colors: ["#312e81", "#4f46e5"], accent: "#818cf8" },
-  { name: "Emerald",  colors: ["#064e3b", "#059669"], accent: "#34d399" },
-  { name: "Rose",     colors: ["#4c0519", "#e11d48"], accent: "#fb7185" },
-  { name: "Slate",    colors: ["#0f172a", "#1e293b"], accent: "#94a3b8" },
-  { name: "Amber",    colors: ["#451a03", "#d97706"], accent: "#fcd34d" },
+  { name: "Indigo",  colors: ["#06080f", "#06080f"], accent: "#818cf8", glow: "rgba(99,102,241,0.35)",  glowMid: "rgba(99,102,241,0.08)"  },
+  { name: "Emerald", colors: ["#030a06", "#030a06"], accent: "#34d399", glow: "rgba(16,185,129,0.32)",  glowMid: "rgba(16,185,129,0.07)"  },
+  { name: "Rose",    colors: ["#0a0306", "#0a0306"], accent: "#fb7185", glow: "rgba(244,63,94,0.32)",   glowMid: "rgba(244,63,94,0.07)"   },
+  { name: "Slate",   colors: ["#060809", "#060809"], accent: "#94a3b8", glow: "rgba(148,163,184,0.22)", glowMid: "rgba(148,163,184,0.05)" },
+  { name: "Amber",   colors: ["#080600", "#080600"], accent: "#fcd34d", glow: "rgba(251,191,36,0.32)",  glowMid: "rgba(251,191,36,0.07)"  },
 ]
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -193,24 +193,32 @@ export function ShotPolishTool() {
       canvas.width  = img.width  + pad * 2
       canvas.height = img.height + pad * 2 + chromeH + headSpace
 
-      // ── Background gradient ──────────────────────────────────────────────
-      const grad = ctx.createLinearGradient(0, 0, canvas.width * 0.6, canvas.height)
-      grad.addColorStop(0, theme.colors[0])
-      grad.addColorStop(1, theme.colors[1])
-      ctx.fillStyle = grad
+      // ── Background: Emil-style deep base + single centered radial glow ────
+      // 1. Deep near-black base fill
+      ctx.fillStyle = theme.colors[0]
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // Subtle noise texture feel via repeated small circles (no external dep)
+      // 2. One large soft radial glow from center — the Emil signature move
+      const cx = canvas.width / 2
+      const cy = canvas.height / 2
+      const glowR = Math.max(canvas.width, canvas.height) * 0.72
+      const glow = ctx.createRadialGradient(cx, cy * 0.7, 0, cx, cy * 0.7, glowR)
+      glow.addColorStop(0,   theme.glow)
+      glow.addColorStop(0.5, theme.glowMid)
+      glow.addColorStop(1,   'transparent')
       ctx.save()
-      ctx.globalAlpha = 0.03
-      for (let i = 0; i < 120; i++) {
-        const rx = Math.random() * canvas.width
-        const ry = Math.random() * canvas.height
-        ctx.beginPath()
-        ctx.arc(rx, ry, Math.random() * 60 + 10, 0, Math.PI * 2)
-        ctx.fillStyle = '#ffffff'
-        ctx.fill()
-      }
+      ctx.globalAlpha = 1
+      ctx.fillStyle = glow
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.restore()
+
+      // 3. Subtle vignette to deepen corners
+      const vig = ctx.createRadialGradient(cx, cy, canvas.height * 0.3, cx, cy, canvas.height)
+      vig.addColorStop(0,   'transparent')
+      vig.addColorStop(1,   'rgba(0,0,0,0.45)')
+      ctx.save()
+      ctx.fillStyle = vig
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
       ctx.restore()
 
       const drawX = pad
@@ -617,28 +625,36 @@ export function ShotPolishTool() {
   )
 }
 
-// ─── STYLES ───────────────────────────────────────────────────────────────────
+// ─── STYLES — Emil Kowalski aesthetic ────────────────────────────────────────
+// Key principles:
+//   • Near-black backgrounds (#06080f), never pure black
+//   • One radial glow per surface — never two competing gradients
+//   • Glass cards: barely-there white border + backdrop-filter blur
+//   • Typography: Inter, tight letter-spacing, high contrast whites
+//   • Generous padding, very little visual noise
+//   • Buttons: ghost style with glow on active state, never flat fills
 
 const s: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
-    background: '#080c14',
-    color: '#e2e8f0',
-    fontFamily: "'Segoe UI', system-ui, sans-serif",
-    padding: '0 0 60px',
+    background: '#06080f',
+    color: '#e8eaf0',
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    padding: '0 0 80px',
+    // Subtle radial glow from top-center — same technique as Emil's sites
+    backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.15) 0%, transparent 70%)',
   },
   header: {
     position: 'relative',
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    padding: '28px 24px 20px',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    marginBottom: '28px',
+    padding: '48px 24px 32px',
+    marginBottom: '32px',
   },
   userChip: {
     position: 'absolute',
-    top: 20,
+    top: 24,
     right: 24,
     display: 'flex',
     alignItems: 'center',
@@ -646,7 +662,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   userEmail: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.35)',
+    color: 'rgba(255,255,255,0.3)',
     maxWidth: 180,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -654,58 +670,61 @@ const s: Record<string, React.CSSProperties> = {
   },
   logoutBtn: {
     padding: '5px 12px',
-    borderRadius: 8,
-    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 6,
+    border: '1px solid rgba(255,255,255,0.08)',
     background: 'transparent',
-    color: 'rgba(255,255,255,0.45)',
+    color: 'rgba(255,255,255,0.35)',
     fontSize: 12,
     cursor: 'pointer',
-    transition: 'color 0.15s, border-color 0.15s',
+    letterSpacing: '0.02em',
   },
   logo: {
-    fontSize: 28,
-    fontWeight: 900,
-    letterSpacing: '-0.5px',
+    fontSize: 26,
+    fontWeight: 700,
+    letterSpacing: '-0.8px',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   tagline: {
     fontSize: 13,
-    opacity: 0.4,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.35)',
+    letterSpacing: '0.04em',
+    fontWeight: 400,
   },
   toolbar: {
     display: 'flex',
-    flexWrap: 'wrap',
-    gap: 20,
+    flexWrap: 'wrap' as const,
+    gap: 16,
     alignItems: 'flex-end',
-    background: 'rgba(255,255,255,0.03)',
+    // Glass card — Emil's signature surface treatment
+    background: 'rgba(255,255,255,0.025)',
     border: '1px solid rgba(255,255,255,0.07)',
     borderRadius: 16,
     padding: '20px 24px',
-    margin: '0 24px 28px',
+    margin: '0 24px 24px',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
   },
   step: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
+    flexDirection: 'column' as const,
+    gap: 7,
     flex: '1 1 120px',
     minWidth: 110,
   },
   stepNum: {
-    fontSize: 11,
-    fontWeight: 700,
-    opacity: 0.35,
-    letterSpacing: '0.08em',
+    fontSize: 10,
+    fontWeight: 600,
+    color: 'rgba(255,255,255,0.2)',
+    letterSpacing: '0.06em',
   },
   stepLabel: {
     fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    opacity: 0.5,
-    fontWeight: 600,
-    marginTop: -4,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    color: 'rgba(255,255,255,0.4)',
+    fontWeight: 500,
+    marginTop: -2,
     display: 'flex',
     alignItems: 'center',
     gap: 6,
@@ -713,81 +732,88 @@ const s: Record<string, React.CSSProperties> = {
   resetField: {
     background: 'transparent',
     border: 'none',
-    color: '#818cf8',
-    fontSize: 14,
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 13,
     cursor: 'pointer',
     padding: 0,
     lineHeight: 1,
-    opacity: 0.8,
   },
   select: {
-    padding: '9px 12px',
+    padding: '8px 11px',
     borderRadius: 8,
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: '#1e2433',
+    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.05)',
     color: '#fff',
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 500,
     cursor: 'pointer',
+    letterSpacing: '0.01em',
   },
   input: {
-    padding: '9px 12px',
+    padding: '8px 11px',
     borderRadius: 8,
-    border: '1px solid rgba(255,255,255,0.12)',
-    background: 'rgba(255,255,255,0.07)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.05)',
     color: '#fff',
     fontSize: 13,
+    fontWeight: 400,
     outline: 'none',
     width: '100%',
-    boxSizing: 'border-box',
+    boxSizing: 'border-box' as const,
+    letterSpacing: '0.01em',
   },
   btn: {
-    padding: '9px 18px',
+    padding: '8px 16px',
     borderRadius: 8,
-    border: 'none',
-    fontWeight: 700,
+    border: '1px solid rgba(255,255,255,0.12)',
+    fontWeight: 600,
     cursor: 'pointer',
     fontSize: 13,
-    whiteSpace: 'nowrap',
+    whiteSpace: 'nowrap' as const,
+    letterSpacing: '0.01em',
+    transition: 'opacity 0.15s',
   },
   themePicker: {
     display: 'flex',
     gap: 8,
     alignItems: 'center',
-    paddingTop: 4,
+    paddingTop: 2,
   },
   themeDot: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: '50%',
     border: 'none',
     cursor: 'pointer',
-    transition: 'transform 0.15s, outline 0.15s',
+    transition: 'transform 0.12s, box-shadow 0.12s',
   },
   workspace: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: 24,
+    gap: 20,
     padding: '0 24px',
   },
   panel: {
+    // Glass card — Emil's primary surface
     background: 'rgba(255,255,255,0.02)',
     border: '1px solid rgba(255,255,255,0.07)',
-    borderRadius: 16,
-    padding: '20px',
-    minHeight: 360,
+    borderRadius: 20,
+    padding: '24px',
+    minHeight: 400,
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const,
     alignItems: 'center',
     gap: 16,
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
   },
   panelLabel: {
     alignSelf: 'flex-start',
     fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    opacity: 0.45,
-    fontWeight: 700,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    color: 'rgba(255,255,255,0.3)',
+    fontWeight: 600,
     display: 'flex',
     alignItems: 'center',
     gap: 8,
@@ -796,67 +822,74 @@ const s: Record<string, React.CSSProperties> = {
     padding: '2px 8px',
     borderRadius: 999,
     fontSize: 10,
-    fontWeight: 700,
-    color: '#0f172a',
+    fontWeight: 600,
+    color: '#000',
     opacity: 1,
+    letterSpacing: '0.03em',
   },
   dropzone: {
     flex: 1,
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    border: '2px dashed rgba(255,255,255,0.1)',
+    gap: 10,
+    border: '1px dashed rgba(255,255,255,0.1)',
     borderRadius: 12,
     width: '100%',
     cursor: 'pointer',
-    color: 'rgba(255,255,255,0.3)',
+    color: 'rgba(255,255,255,0.2)',
     fontSize: 13,
     padding: '60px 20px',
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.2s, background 0.2s',
+    letterSpacing: '0.01em',
   },
   dropIcon: {
-    fontSize: 32,
-    opacity: 0.3,
+    fontSize: 28,
+    opacity: 0.2,
   },
   rawImg: {
     maxWidth: '100%',
-    borderRadius: 8,
+    borderRadius: 10,
     display: 'block',
-    userSelect: 'none',
+    userSelect: 'none' as const,
   },
   resetBtn: {
     background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.15)',
-    color: 'rgba(255,255,255,0.5)',
-    borderRadius: 8,
-    padding: '6px 14px',
-    fontSize: 12,
+    border: '1px solid rgba(255,255,255,0.08)',
+    color: 'rgba(255,255,255,0.3)',
+    borderRadius: 6,
+    padding: '5px 12px',
+    fontSize: 11,
     cursor: 'pointer',
+    letterSpacing: '0.03em',
   },
   previewImg: {
     maxWidth: '100%',
-    borderRadius: 12,
-    boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+    borderRadius: 14,
+    // Deep shadow — makes the export look like it's floating
+    boxShadow: '0 0 0 1px rgba(255,255,255,0.06), 0 32px 80px rgba(0,0,0,0.8)',
   },
   emptyPreview: {
     flex: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'rgba(255,255,255,0.15)',
+    color: 'rgba(255,255,255,0.12)',
     fontSize: 13,
+    letterSpacing: '0.01em',
   },
   exportBtn: {
-    padding: '12px 32px',
-    border: 'none',
+    padding: '11px 28px',
+    border: '1px solid rgba(255,255,255,0.15)',
     borderRadius: 10,
-    fontWeight: 800,
-    fontSize: 14,
+    fontWeight: 600,
+    fontSize: 13,
     cursor: 'pointer',
-    letterSpacing: '0.04em',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+    letterSpacing: '0.03em',
+    // Glow effect on the export button — reward for reaching the final step
+    boxShadow: '0 0 24px rgba(0,0,0,0.4)',
+    transition: 'opacity 0.15s, box-shadow 0.15s',
   },
   liveTextBar: {
     width: '100%',
@@ -864,25 +897,27 @@ const s: Record<string, React.CSSProperties> = {
     flexDirection: 'column' as const,
     alignItems: 'center',
     gap: 8,
-    padding: '10px 12px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.07)',
-    borderRadius: 10,
+    padding: '12px 16px',
+    background: 'rgba(255,255,255,0.025)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 12,
     marginBottom: 4,
   },
   liveHeadline: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: 600,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center' as const,
-    lineHeight: 1.4,
+    lineHeight: 1.5,
     wordBreak: 'break-word' as const,
+    letterSpacing: '-0.01em',
   },
   liveCallout: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: '#0f172a',
-    padding: '4px 12px',
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#000',
+    padding: '3px 10px',
     borderRadius: 999,
+    letterSpacing: '0.02em',
   },
 }

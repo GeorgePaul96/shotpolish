@@ -2,26 +2,19 @@ import { useState } from 'react'
 import { track } from '../lib/analytics'
 
 /**
- * Self-contained feedback modal — no Tally, no external dependencies.
- * Responses are sent to Formspree (free, no backend needed).
- *
- * Setup (2 min):
- *   1. Go to https://formspree.io → New Form → name it "ShotPolish Feedback"
- *   2. Copy your form endpoint — looks like: https://formspree.io/f/xyzabcde
- *   3. Replace FORMSPREE_ENDPOINT below with that URL
- *
- * Formspree free tier: 50 submissions/month, responses emailed to you.
- * If you hit the limit, that's a good problem — upgrade or swap for another service.
+ * Self-contained feedback modal.
+ * Uses the same Formspree endpoint as the waitlist — responses tagged with type.
+ * No external redirects. No Tally. No broken links.
  */
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzyowzb'
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnjrqgpw'
 
 type Status = 'idle' | 'open' | 'submitting' | 'success' | 'error'
 
 export function FeedbackButton() {
-  const [status, setStatus]   = useState<Status>('idle')
-  const [result, setResult]   = useState('')
-  const [willing, setWilling] = useState('')
-  const [improve, setImprove] = useState('')
+  const [status,   setStatus]   = useState<Status>('idle')
+  const [result,   setResult]   = useState('')
+  const [willing,  setWilling]  = useState('')
+  const [improve,  setImprove]  = useState('')
 
   const open = () => {
     track('feedback_widget_opened')
@@ -36,15 +29,15 @@ export function FeedbackButton() {
   }
 
   const submit = async () => {
-    if (!result) return          // result is required
+    if (!result) return
     setStatus('submitting')
     track('feedback_submitted', { result, willing })
-
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
+          _type: 'feedback',
           'Did it work?': result,
           'Would you pay?': willing,
           'What would improve it?': improve,
@@ -58,45 +51,43 @@ export function FeedbackButton() {
 
   return (
     <>
-      {/* Floating trigger button */}
-      <button onClick={open} style={styles.trigger}>
+      {/* Floating trigger — bottom LEFT to avoid overlap with waitlist banner */}
+      <button onClick={open} style={s.trigger}>
         💬 Feedback
       </button>
 
-      {/* Modal overlay */}
-      {(status === 'open' || status === 'submitting' || status === 'success' || status === 'error') && (
-        <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && close()}>
-          <div style={styles.modal}>
+      {/* Modal overlay — click outside to close */}
+      {status !== 'idle' && (
+        <div style={s.overlay} onClick={e => e.target === e.currentTarget && close()}>
+          <div style={s.modal}>
 
-            {/* Header */}
-            <div style={styles.header}>
-              <span style={styles.title}>Quick feedback</span>
-              <button onClick={close} style={styles.closeBtn}>✕</button>
+            <div style={s.header}>
+              <span style={s.title}>Quick feedback</span>
+              <button onClick={close} style={s.closeBtn}>✕</button>
             </div>
 
             {status === 'success' ? (
-              <div style={styles.successBox}>
-                <div style={{ fontSize: 32 }}>🙏</div>
-                <div style={styles.successText}>Thank you — this genuinely helps.</div>
-                <button onClick={close} style={styles.submitBtn}>Close</button>
+              <div style={s.centered}>
+                <div style={{ fontSize: 28 }}>🙏</div>
+                <p style={s.successText}>Thank you — genuinely read by the founder.</p>
+                <button onClick={close} style={s.submitBtn}>Close</button>
               </div>
             ) : status === 'error' ? (
-              <div style={styles.successBox}>
-                <div style={{ fontSize: 32 }}>⚠️</div>
-                <div style={styles.successText}>Something went wrong. Please try again.</div>
-                <button onClick={() => setStatus('open')} style={styles.submitBtn}>Try again</button>
+              <div style={s.centered}>
+                <div style={{ fontSize: 28 }}>⚠️</div>
+                <p style={s.successText}>Something went wrong. Please try again.</p>
+                <button onClick={() => setStatus('open')} style={s.submitBtn}>Try again</button>
               </div>
             ) : (
               <>
-                {/* Q1 */}
-                <div style={styles.field}>
-                  <label style={styles.label}>Did you get the result you wanted? *</label>
-                  <div style={styles.pills}>
-                    {['Yes', 'Almost', 'No'].map(opt => (
+                <div style={s.field}>
+                  <label style={s.label}>Did you get the result you wanted? *</label>
+                  <div style={s.pills}>
+                    {['Yes ✓', 'Almost', 'No'].map(opt => (
                       <button
                         key={opt}
                         onClick={() => setResult(opt)}
-                        style={{ ...styles.pill, ...(result === opt ? styles.pillActive : {}) }}
+                        style={{ ...s.pill, ...(result === opt ? s.pillActive : {}) }}
                       >
                         {opt}
                       </button>
@@ -104,15 +95,14 @@ export function FeedbackButton() {
                   </div>
                 </div>
 
-                {/* Q2 */}
-                <div style={styles.field}>
-                  <label style={styles.label}>Would you pay for a Pro version?</label>
-                  <div style={styles.pills}>
+                <div style={s.field}>
+                  <label style={s.label}>Would you pay for a Pro version?</label>
+                  <div style={s.pills}>
                     {['Yes', 'Maybe', 'No'].map(opt => (
                       <button
                         key={opt}
                         onClick={() => setWilling(opt)}
-                        style={{ ...styles.pill, ...(willing === opt ? styles.pillActive : {}) }}
+                        style={{ ...s.pill, ...(willing === opt ? s.pillActive : {}) }}
                       >
                         {opt}
                       </button>
@@ -120,15 +110,17 @@ export function FeedbackButton() {
                   </div>
                 </div>
 
-                {/* Q3 */}
-                <div style={styles.field}>
-                  <label style={styles.label}>What would make it better? <span style={{ opacity: 0.4 }}>(optional)</span></label>
+                <div style={s.field}>
+                  <label style={s.label}>
+                    What would make it better?{' '}
+                    <span style={{ opacity: 0.35 }}>(optional)</span>
+                  </label>
                   <textarea
                     value={improve}
                     onChange={e => setImprove(e.target.value)}
                     placeholder="Any feature, complaint, or idea..."
                     rows={3}
-                    style={styles.textarea}
+                    style={s.textarea}
                   />
                 </div>
 
@@ -136,15 +128,15 @@ export function FeedbackButton() {
                   onClick={submit}
                   disabled={!result || status === 'submitting'}
                   style={{
-                    ...styles.submitBtn,
-                    opacity: (!result || status === 'submitting') ? 0.4 : 1,
-                    cursor: (!result || status === 'submitting') ? 'not-allowed' : 'pointer',
+                    ...s.submitBtn,
+                    opacity: !result || status === 'submitting' ? 0.4 : 1,
+                    cursor: !result || status === 'submitting' ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {status === 'submitting' ? 'Sending…' : 'Send feedback →'}
                 </button>
 
-                <p style={styles.hint}>Takes 20 seconds. Genuinely read by the founder.</p>
+                <p style={s.hint}>Takes 20 seconds.</p>
               </>
             )}
           </div>
@@ -154,13 +146,11 @@ export function FeedbackButton() {
   )
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const styles: Record<string, React.CSSProperties> = {
+const s: Record<string, React.CSSProperties> = {
   trigger: {
     position: 'fixed',
     bottom: 24,
-    right: 24,
+    left: 24,           // ← LEFT side, away from waitlist banner (bottom-right)
     zIndex: 9000,
     padding: '10px 18px',
     background: 'rgba(129,140,248,0.12)',
@@ -171,20 +161,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     fontFamily: "'Inter', system-ui, sans-serif",
     whiteSpace: 'nowrap',
-    transition: 'background 0.15s',
   },
   overlay: {
     position: 'fixed',
     inset: 0,
     zIndex: 9999,
-    background: 'rgba(0,0,0,0.6)',
+    background: 'rgba(0,0,0,0.55)',
     backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
     display: 'flex',
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    padding: '0 24px 90px',
+    justifyContent: 'flex-start',  // anchors modal to bottom-left above button
+    padding: '0 24px 80px',
   },
   modal: {
     background: '#0d1117',
@@ -192,10 +183,10 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 16,
     padding: '24px',
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 340,
     display: 'flex',
     flexDirection: 'column',
-    gap: 20,
+    gap: 18,
     boxShadow: '0 32px 80px rgba(0,0,0,0.8)',
     fontFamily: "'Inter', system-ui, sans-serif",
   },
@@ -222,23 +213,24 @@ const styles: Record<string, React.CSSProperties> = {
   field: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
+    gap: 8,
   },
   label: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: 500,
   },
   pills: {
     display: 'flex',
     gap: 8,
+    flexWrap: 'wrap' as const,
   },
   pill: {
-    padding: '7px 16px',
+    padding: '7px 14px',
     borderRadius: 8,
     border: '1px solid rgba(255,255,255,0.12)',
     background: 'transparent',
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,255,255,0.45)',
     fontSize: 13,
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -257,10 +249,12 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(255,255,255,0.04)',
     color: '#fff',
     fontSize: 13,
-    fontFamily: "'Inter', system-ui, sans-serif",
+    fontFamily: 'inherit',
     resize: 'vertical' as const,
     outline: 'none',
     lineHeight: 1.5,
+    boxSizing: 'border-box' as const,
+    width: '100%',
   },
   submitBtn: {
     padding: '11px 20px',
@@ -272,24 +266,26 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     fontFamily: 'inherit',
     letterSpacing: '0.01em',
+    cursor: 'pointer',
   },
-  successBox: {
+  centered: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: 12,
+    textAlign: 'center' as const,
     padding: '8px 0',
-    textAlign: 'center',
   },
   successText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.65)',
     fontSize: 14,
     lineHeight: 1.5,
+    margin: 0,
   },
   hint: {
     fontSize: 11,
     color: 'rgba(255,255,255,0.2)',
     textAlign: 'center' as const,
-    margin: '-8px 0 0',
+    margin: '-6px 0 0',
   },
 }

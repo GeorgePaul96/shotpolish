@@ -83,6 +83,8 @@ export function ShotPolishTool() {
   const [imageUrl,       setImageUrl]       = useState<string | null>(null)
   const [processedImage, setProcessedImage] = useState<string | null>(null)
   const [isRendering,    setIsRendering]    = useState(false)
+  const [hasExported,    setHasExported]    = useState(false)
+  const [showWaitlist,   setShowWaitlist]   = useState(false)
 
   // Narrative
   const [intent,    setIntent]    = useState("Explain Feature")
@@ -420,6 +422,18 @@ export function ShotPolishTool() {
         }
       }
 
+      // ── Watermark — viral loop driver ───────────────────────────────────
+      // Small, tasteful, legible. Every share is a free ad.
+      ctx.save()
+      const wmText = 'shotpolish.com'
+      const wmSize = Math.max(Math.round(canvas.width * 0.013), 11)
+      ctx.font = `500 ${wmSize}px 'Inter', system-ui, sans-serif`
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'bottom'
+      ctx.fillStyle = 'rgba(255,255,255,0.30)'
+      ctx.fillText(wmText, canvas.width - 16, canvas.height - 14)
+      ctx.restore()
+
       setProcessedImage(canvas.toDataURL('image/png'))
       setIsRendering(false)
     }
@@ -606,10 +620,20 @@ export function ShotPolishTool() {
               <button
                 onClick={() => {
                   Events.exportCompleted(intent, THEMES[themeIndex].name)
+                  // Append to DOM first — required for programmatic click
+                  // on data URLs in Chrome, Safari, and Firefox
                   const a = document.createElement('a')
                   a.href = processedImage
                   a.download = `shotpolish-${intent.replace(/\s+/g, '-').toLowerCase()}.png`
+                  a.style.display = 'none'
+                  document.body.appendChild(a)
                   a.click()
+                  document.body.removeChild(a)
+                  // Show waitlist immediately — no timeout, no race condition
+                  if (!hasExported) {
+                    setHasExported(true)
+                    setShowWaitlist(true)
+                  }
                 }}
                 style={{ ...s.exportBtn, background: theme.accent, color: '#0f172a' }}
               >
@@ -621,6 +645,31 @@ export function ShotPolishTool() {
           )}
         </div>
       </div>
+      {/* Pro waitlist banner — shows once after first export */}
+      {showWaitlist && (
+        <div style={s.waitlistBanner}>
+          <button
+            onClick={() => setShowWaitlist(false)}
+            style={s.waitlistClose}
+            aria-label="Dismiss"
+          >✕</button>
+          <div style={s.waitlistContent}>
+            <div style={s.waitlistText}>
+              <span style={{ color: theme.accent, fontWeight: 700 }}>Pro is coming.</span>
+              {' '}Custom fonts, watermark removal, extra themes, export history.
+            </div>
+            <a
+              href="https://tally.so/r/TALLY-WAITLIST-ID"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...s.waitlistBtn, background: theme.accent, color: '#0f172a' }}
+              onClick={() => Events.pricingInterestShown()}
+            >
+              Join the waitlist →
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -919,5 +968,57 @@ const s: Record<string, React.CSSProperties> = {
     padding: '3px 10px',
     borderRadius: 999,
     letterSpacing: '0.02em',
+  },
+  waitlistBanner: {
+    position: 'fixed' as const,
+    bottom: 80,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 1000,
+    background: 'rgba(10,12,20,0.95)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    padding: '16px 20px',
+    maxWidth: 480,
+    width: 'calc(100vw - 48px)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+  },
+  waitlistContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    flexWrap: 'wrap' as const,
+  },
+  waitlistText: {
+    flex: 1,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 1.5,
+    minWidth: 200,
+  },
+  waitlistBtn: {
+    padding: '8px 18px',
+    borderRadius: 8,
+    border: 'none',
+    fontWeight: 700,
+    fontSize: 13,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    textDecoration: 'none',
+    letterSpacing: '0.01em',
+  },
+  waitlistClose: {
+    position: 'absolute' as const,
+    top: 10,
+    right: 12,
+    background: 'transparent',
+    border: 'none',
+    color: 'rgba(255,255,255,0.3)',
+    cursor: 'pointer',
+    fontSize: 14,
+    padding: 4,
+    lineHeight: 1,
   },
 }

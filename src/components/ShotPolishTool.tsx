@@ -85,6 +85,8 @@ export function ShotPolishTool() {
   const [isRendering,    setIsRendering]    = useState(false)
   const [hasExported,    setHasExported]    = useState(false)
   const [showWaitlist,   setShowWaitlist]   = useState(false)
+  const [waitlistEmail,  setWaitlistEmail]  = useState('')
+  const [waitlistSent,   setWaitlistSent]   = useState(false)
 
   // Narrative
   const [intent,    setIntent]    = useState("Explain Feature")
@@ -648,26 +650,55 @@ export function ShotPolishTool() {
       {/* Pro waitlist banner — shows once after first export */}
       {showWaitlist && (
         <div style={s.waitlistBanner}>
-          <button
-            onClick={() => setShowWaitlist(false)}
-            style={s.waitlistClose}
-            aria-label="Dismiss"
-          >✕</button>
-          <div style={s.waitlistContent}>
-            <div style={s.waitlistText}>
-              <span style={{ color: theme.accent, fontWeight: 700 }}>Pro is coming.</span>
-              {' '}Custom fonts, watermark removal, extra themes, export history.
+          <button onClick={() => setShowWaitlist(false)} style={s.waitlistClose} aria-label="Dismiss">✕</button>
+          {waitlistSent ? (
+            <div style={{ textAlign: 'center' as const, padding: '4px 0' }}>
+              <div style={{ fontSize: 22, marginBottom: 6 }}>🎉</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
+                You're on the list. We'll email you when Pro launches.
+              </div>
             </div>
-            <a
-              href="https://tally.so/r/TALLY-WAITLIST-ID"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ ...s.waitlistBtn, background: theme.accent, color: '#0f172a' }}
-              onClick={() => Events.pricingInterestShown()}
-            >
-              Join the waitlist →
-            </a>
-          </div>
+          ) : (
+            <div style={s.waitlistContent}>
+              <div style={s.waitlistText}>
+                <span style={{ color: theme.accent, fontWeight: 700 }}>Pro is coming.</span>
+                {' '}Remove watermark, custom fonts, extra themes.
+              </div>
+              <div style={s.waitlistInputRow}>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={waitlistEmail}
+                  onChange={e => setWaitlistEmail(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && waitlistEmail.includes('@')) {
+                      Events.pricingInterestShown()
+                      fetch('https://formspree.io/f/mnjrqgpw', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                        body: JSON.stringify({ email: waitlistEmail, source: 'post-export-banner' }),
+                      }).finally(() => setWaitlistSent(true))
+                    }
+                  }}
+                  style={s.waitlistInput}
+                />
+                <button
+                  onClick={() => {
+                    if (!waitlistEmail.includes('@')) return
+                    Events.pricingInterestShown()
+                    fetch('https://formspree.io/f/mnjrqgpw', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                      body: JSON.stringify({ email: waitlistEmail, source: 'post-export-banner' }),
+                    }).finally(() => setWaitlistSent(true))
+                  }}
+                  style={{ ...s.waitlistBtn, background: theme.accent, color: '#0f172a' }}
+                >
+                  Join →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1020,5 +1051,22 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     padding: 4,
     lineHeight: 1,
+  },
+  waitlistInputRow: {
+    display: 'flex',
+    gap: 8,
+    flexWrap: 'wrap' as const,
+  },
+  waitlistInput: {
+    flex: 1,
+    minWidth: 160,
+    padding: '8px 12px',
+    borderRadius: 8,
+    border: '1px solid rgba(255,255,255,0.12)',
+    background: 'rgba(255,255,255,0.06)',
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: "'Inter', system-ui, sans-serif",
+    outline: 'none',
   },
 }

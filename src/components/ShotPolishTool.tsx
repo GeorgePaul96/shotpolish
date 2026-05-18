@@ -87,6 +87,11 @@ export function ShotPolishTool() {
   const [showWaitlist,   setShowWaitlist]   = useState(false)
   const [waitlistEmail,  setWaitlistEmail]  = useState('')
   const [waitlistSent,   setWaitlistSent]   = useState(false)
+  // Feedback modal state — inlined so it works regardless of App.tsx composition
+  const [fbStatus,  setFbStatus]  = useState<'idle'|'open'|'submitting'|'success'|'error'>('idle')
+  const [fbResult,  setFbResult]  = useState('')
+  const [fbWilling, setFbWilling] = useState('')
+  const [fbImprove, setFbImprove] = useState('')
 
   // Narrative
   const [intent,    setIntent]    = useState("Explain Feature")
@@ -451,6 +456,33 @@ export function ShotPolishTool() {
   // Cleanup object URL on unmount
   useEffect(() => () => { if (imageUrl) URL.revokeObjectURL(imageUrl) }, [])
 
+  // ── Feedback submit ─────────────────────────────────────────────────────
+  const submitFeedback = async () => {
+    if (!fbResult) return
+    setFbStatus('submitting')
+    Events.track?.('feedback_submitted') 
+    try {
+      const res = await fetch('https://formspree.io/f/xvzyowzb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _type: 'feedback',
+          'Did it work?': fbResult,
+          'Would you pay?': fbWilling,
+          'What would improve it?': fbImprove,
+        }),
+      })
+      setFbStatus(res.ok ? 'success' : 'error')
+    } catch { setFbStatus('error') }
+  }
+
+  const closeFeedback = () => {
+    setFbStatus('idle')
+    setFbResult('')
+    setFbWilling('')
+    setFbImprove('')
+  }
+
   // ── Render ───────────────────────────────────────────────────────────────
   const theme = THEMES[themeIndex]
 
@@ -647,6 +679,100 @@ export function ShotPolishTool() {
           )}
         </div>
       </div>
+      {/* ── Feedback button — bottom left, always visible ─────────────────── */}
+      <button
+        onClick={() => { setFbStatus('open') }}
+        style={{
+          position: 'fixed', bottom: 24, left: 24, zIndex: 9000,
+          padding: '10px 18px',
+          background: 'rgba(129,140,248,0.12)',
+          color: '#818cf8',
+          border: '1px solid rgba(129,140,248,0.35)',
+          borderRadius: 999, fontSize: 13, fontWeight: 600,
+          cursor: 'pointer',
+          backdropFilter: 'blur(12px)',
+          fontFamily: "'Inter', system-ui, sans-serif",
+          whiteSpace: 'nowrap' as const,
+        }}
+      >
+        💬 Feedback
+      </button>
+
+      {/* ── Feedback modal ──────────────────────────────────────────────────── */}
+      {fbStatus !== 'idle' && (
+        <div
+          onClick={e => e.target === e.currentTarget && closeFeedback()}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start',
+            padding: '0 24px 80px',
+          }}
+        >
+          <div style={{
+            background: '#0d1117',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 16, padding: '24px', width: '100%', maxWidth: 340,
+            display: 'flex', flexDirection: 'column' as const, gap: 18,
+            boxShadow: '0 32px 80px rgba(0,0,0,0.8)',
+            fontFamily: "'Inter', system-ui, sans-serif",
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: '#fff', letterSpacing: '-0.2px' }}>Quick feedback</span>
+              <button onClick={closeFeedback} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: 16, padding: 4 }}>✕</button>
+            </div>
+
+            {fbStatus === 'success' ? (
+              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 12, textAlign: 'center' as const, padding: '8px 0' }}>
+                <div style={{ fontSize: 28 }}>🙏</div>
+                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>Thank you — genuinely read by the founder.</p>
+                <button onClick={closeFeedback} style={{ padding: '11px 20px', borderRadius: 10, border: 'none', background: '#818cf8', color: '#0f172a', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
+              </div>
+            ) : fbStatus === 'error' ? (
+              <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 12, textAlign: 'center' as const }}>
+                <div style={{ fontSize: 28 }}>⚠️</div>
+                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, margin: 0 }}>Something went wrong. Please try again.</p>
+                <button onClick={() => setFbStatus('open')} style={{ padding: '11px 20px', borderRadius: 10, border: 'none', background: '#818cf8', color: '#0f172a', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Try again</button>
+              </div>
+            ) : (
+              <>
+                {/* Q1 */}
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                  <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Did you get the result you wanted? *</label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+                    {['Yes ✓', 'Almost', 'No'].map(opt => (
+                      <button key={opt} onClick={() => setFbResult(opt)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: fbResult === opt ? '#818cf8' : 'transparent', color: fbResult === opt ? '#0f172a' : 'rgba(255,255,255,0.45)', fontWeight: fbResult === opt ? 700 : 400, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{opt}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Q2 */}
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                  <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Would you pay for a Pro version?</label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+                    {['Yes', 'Maybe', 'No'].map(opt => (
+                      <button key={opt} onClick={() => setFbWilling(opt)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)', background: fbWilling === opt ? '#818cf8' : 'transparent', color: fbWilling === opt ? '#0f172a' : 'rgba(255,255,255,0.45)', fontWeight: fbWilling === opt ? 700 : 400, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>{opt}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Q3 */}
+                <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                  <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>What would make it better? <span style={{ opacity: 0.35 }}>(optional)</span></label>
+                  <textarea value={fbImprove} onChange={e => setFbImprove(e.target.value)} placeholder="Any feature, complaint, or idea..." rows={3}
+                    style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: 13, fontFamily: 'inherit', resize: 'vertical' as const, outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' as const, width: '100%' }} />
+                </div>
+                <button onClick={submitFeedback} disabled={!fbResult || fbStatus === 'submitting'}
+                  style={{ padding: '11px 20px', borderRadius: 10, border: 'none', background: '#818cf8', color: '#0f172a', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: !fbResult ? 'not-allowed' : 'pointer', opacity: !fbResult || fbStatus === 'submitting' ? 0.4 : 1 }}>
+                  {fbStatus === 'submitting' ? 'Sending…' : 'Send feedback →'}
+                </button>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textAlign: 'center' as const, margin: '-6px 0 0' }}>Takes 20 seconds.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Pro waitlist banner — shows once after first export */}
       {showWaitlist && (
         <div style={s.waitlistBanner}>

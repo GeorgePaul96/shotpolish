@@ -6,7 +6,7 @@ import { track } from '../lib/analytics'
  * Uses the same Formspree endpoint as the waitlist — responses tagged with type.
  * No external redirects. No Tally. No broken links.
  */
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnjrqgpw'
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzyowzb'
 
 type Status = 'idle' | 'open' | 'submitting' | 'success' | 'error'
 

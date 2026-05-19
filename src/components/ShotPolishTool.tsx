@@ -947,13 +947,14 @@ const s: Record<string, React.CSSProperties> = {
   select: {
     padding: '8px 11px',
     borderRadius: 8,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: '#1a1f2e',   // solid dark — rgba backgrounds break native <select> on all browsers
     color: '#fff',
     fontSize: 13,
     fontWeight: 500,
     cursor: 'pointer',
     letterSpacing: '0.01em',
+    appearance: 'auto' as const,
   },
   input: {
     padding: '8px 11px',

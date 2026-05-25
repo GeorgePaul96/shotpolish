@@ -460,7 +460,8 @@ export function ShotPolishTool() {
   const submitFeedback = async () => {
     if (!fbResult) return
     setFbStatus('submitting')
-    Events.track?.('feedback_submitted') 
+    // feedback_submitted — use plausible directly since track is standalone
+    try { (window as any).plausible?.('feedback_submitted') } catch { /* noop */ }
     try {
       const res = await fetch('https://formspree.io/f/xvzyowzb', {
         method: 'POST',

@@ -93,6 +93,10 @@ export function TermsOfService() {
   )
 }
 
+export function LegalPages({ page }: { page: 'privacy' | 'terms' }) {
+  return page === 'privacy' ? <PrivacyPolicy /> : <TermsOfService />
+}
+
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',

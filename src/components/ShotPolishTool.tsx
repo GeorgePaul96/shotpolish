@@ -432,7 +432,7 @@ export function ShotPolishTool() {
       // ── Watermark — viral loop driver ───────────────────────────────────
       // Small, tasteful, legible. Every share is a free ad.
       ctx.save()
-      const wmText = 'shotpolish.com'
+      const wmText = 'shotpolish.org'
       const wmSize = Math.max(Math.round(canvas.width * 0.013), 11)
       ctx.font = `500 ${wmSize}px 'Inter', system-ui, sans-serif`
       ctx.textAlign = 'right'

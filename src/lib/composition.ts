@@ -574,6 +574,6 @@ export function renderComposition(
   ctx.textAlign = 'right'
   ctx.textBaseline = 'bottom'
   ctx.fillStyle = 'rgba(255,255,255,0.26)'
-  ctx.fillText('shotpolish.com', watermark.x, watermark.y + watermark.h)
+  ctx.fillText('shotpolish.org', watermark.x, watermark.y + watermark.h)
   ctx.restore()
 }

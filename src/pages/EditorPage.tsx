@@ -845,7 +845,7 @@ export function EditorPage() {
       const results = [
         {
           type: 'Launch Hype 🚀',
-          text: `After months of hard work, I'm excited to share that "${cleanHeadline}" is live! \n\nWe built this to solve one primary frustration: ${cleanCallout}.\n\nGive it a try at shotpolish.com and let me know your thoughts!`
+          text: `After months of hard work, I'm excited to share that "${cleanHeadline}" is live! \n\nWe built this to solve one primary frustration: ${cleanCallout}.\n\nGive it a try at shotpolish.org and let me know your thoughts!`
         },
         {
           type: 'Indie Builder 🛠️',

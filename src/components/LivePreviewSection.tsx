@@ -159,7 +159,7 @@ function PreviewCard({ theme }: { theme: typeof PREVIEW_THEMES[number] }) {
 
       {/* Watermark */}
       <div className="absolute bottom-3 right-3">
-        <span className="text-[9px] text-white/20">shotpolish.com</span>
+        <span className="text-[9px] text-white/20">shotpolish.org</span>
       </div>
     </div>
   )

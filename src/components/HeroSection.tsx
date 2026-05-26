@@ -120,7 +120,7 @@ function PolishedPreview() {
 
       {/* Watermark */}
       <div className="text-right mt-2">
-        <span className="text-[8px] text-white/20">shotpolish.com</span>
+        <span className="text-[8px] text-white/20">shotpolish.org</span>
       </div>
     </div>
   )

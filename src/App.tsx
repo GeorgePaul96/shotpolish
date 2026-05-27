@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { HomePage } from './pages/HomePage'
 import { EditorPage } from './pages/EditorPage'
+import { StoryModePage } from './pages/StoryModePage'
 import { LegalPages } from './components/LegalPages'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
           }
         />
         <Route path="/editor" element={<EditorPage />} />
+        <Route path="/story" element={<StoryModePage />} />
         <Route path="/privacy" element={<><Navbar /><LegalPages page="privacy" /></>} />
         <Route path="/terms" element={<><Navbar /><LegalPages page="terms" /></>} />
       </Routes>

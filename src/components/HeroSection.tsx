@@ -139,7 +139,7 @@ function UploadDropzone({ onFile }: { onFile: (f: File) => void }) {
 
   return (
     <div
-      className="relative group border border-dashed border-white/10 rounded-2xl p-8 text-center cursor-pointer
+      className="relative group border border-dashed border-[#DDE0E8] rounded-2xl p-8 text-center cursor-pointer
                  hover:border-accent/40 hover:bg-accent/[0.03] transition-all duration-200"
       onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
@@ -161,8 +161,8 @@ function UploadDropzone({ onFile }: { onFile: (f: File) => void }) {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-medium text-white">Drop your screenshot here</p>
-          <p className="text-xs text-zinc-500 mt-1">or click to browse · PNG, JPG, WebP</p>
+          <p className="text-sm font-medium text-[#374151]">Drop your screenshot here</p>
+          <p className="text-xs text-[#6B7280] mt-1">or click to browse · PNG, JPG, WebP</p>
         </div>
       </div>
     </div>
@@ -193,7 +193,7 @@ export function HeroSection() {
       <div
         className="absolute inset-0 pointer-events-none opacity-40"
         style={{
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(rgba(0,0,0,0.07) 1px, transparent 1px)',
           backgroundSize: '28px 28px',
         }}
       />
@@ -212,20 +212,18 @@ export function HeroSection() {
       {/* Headline */}
       <motion.h1
         custom={1} variants={fadeUp} initial="hidden" animate="visible"
-        className="max-w-3xl text-center text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter text-white leading-[1.08]"
+        className="max-w-3xl text-center text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter text-[#111827] leading-[1.08]"
       >
-        Make your screenshots{' '}
-        <span className="text-gradient">presentation-ready.</span>{' '}
-        Instantly.
+        Turn product screenshots into{' '}
+        <span className="text-gradient">launch-ready stories.</span>
       </motion.h1>
 
       {/* Subheadline */}
       <motion.p
         custom={2} variants={fadeUp} initial="hidden" animate="visible"
-        className="mt-5 max-w-xl text-center text-base sm:text-lg text-zinc-400 leading-relaxed"
+        className="mt-5 max-w-xl text-center text-base sm:text-lg text-[#374151] leading-relaxed"
       >
-        Beautiful backgrounds, spacing, shadows, and layouts — powered by AI.
-        From raw screenshot to polished visual in seconds.
+        Add spotlight focus, annotations, motion, and story-driven layouts in seconds.
       </motion.p>
 
       {/* CTAs */}
@@ -234,30 +232,29 @@ export function HeroSection() {
         className="mt-8 flex flex-col sm:flex-row items-center gap-3"
       >
         <button
-          onClick={() => navigate('/editor')}
+          onClick={() => navigate('/story')}
           className="btn-primary px-6 py-3 text-sm gap-2 shadow-glow-sm"
         >
           <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v8M8 2L5 5M8 2l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-          Upload Screenshot
+          Create Launch Story
         </button>
-        <a
-          href="#preview"
+        <button
+          onClick={() => navigate('/editor')}
           className="btn-ghost px-6 py-3 text-sm"
         >
-          See examples
+          Polish a screenshot
           <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
             <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-        </a>
+        </button>
       </motion.div>
 
       {/* Social proof */}
       <motion.p
         custom={4} variants={fadeUp} initial="hidden" animate="visible"
-        className="mt-4 text-xs text-zinc-600"
+        className="mt-4 text-xs text-[#6B7280]"
       >
         No account required · Export in 1 click
       </motion.p>
@@ -271,22 +268,22 @@ export function HeroSection() {
           {/* Before */}
           <div className="group">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-2 h-2 rounded-full bg-zinc-700" />
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Before</span>
+              <div className="w-2 h-2 rounded-full bg-[#9CA3AF]" />
+              <span className="text-xs text-[#6B7280] font-medium uppercase tracking-wider">Before</span>
             </div>
-            <div className="relative rounded-2xl overflow-hidden border border-white/[0.04] shadow-card">
+            <div className="relative rounded-2xl overflow-hidden border border-[#E5E7EC] shadow-card">
               <BrowserChrome>
                 <FakeScreenshotContent />
               </BrowserChrome>
               {/* Dull overlay */}
               <div className="absolute inset-0 bg-zinc-900/10 rounded-2xl pointer-events-none" />
             </div>
-            <p className="mt-2 text-xs text-zinc-600 text-center">Plain, forgettable</p>
+            <p className="mt-2 text-xs text-[#6B7280] text-center">Plain, forgettable</p>
           </div>
 
           {/* Arrow (desktop) */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 mt-16 items-center justify-center z-10">
-            <div className="w-8 h-8 rounded-full border border-white/10 bg-[#111113] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full border border-[#E5E7EC] bg-white shadow-card flex items-center justify-center">
               <svg className="w-4 h-4 text-accent" viewBox="0 0 16 16" fill="none">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -305,7 +302,7 @@ export function HeroSection() {
             >
               <PolishedPreview />
             </motion.div>
-            <p className="mt-2 text-xs text-zinc-500 text-center">Polished, shareable, striking</p>
+            <p className="mt-2 text-xs text-[#6B7280] text-center">Polished, shareable, striking</p>
           </div>
         </div>
 
@@ -325,12 +322,12 @@ export function HeroSection() {
         transition={{ delay: 1.5, duration: 0.8 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
       >
-        <span className="text-xs text-zinc-700">Scroll to explore</span>
+        <span className="text-xs text-[#9CA3AF]">Scroll to explore</span>
         <motion.div
           animate={{ y: [0, 4, 0] }}
           transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
         >
-          <svg className="w-4 h-4 text-zinc-700" viewBox="0 0 16 16" fill="none">
+          <svg className="w-4 h-4 text-[#9CA3AF]" viewBox="0 0 16 16" fill="none">
             <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </motion.div>

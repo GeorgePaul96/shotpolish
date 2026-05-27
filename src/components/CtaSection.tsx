@@ -10,7 +10,7 @@ export function CtaSection() {
   return (
     <section ref={ref} className="py-28 px-4 relative overflow-hidden">
       {/* Top separator */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#E5E7EC] to-transparent" />
 
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none"
@@ -23,12 +23,12 @@ export function CtaSection() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tighter leading-tight mb-5">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#111827] tracking-tighter leading-tight mb-5">
             Your next screenshot
             <br />
             deserves better.
           </h2>
-          <p className="text-zinc-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+          <p className="text-[#374151] text-lg mb-8 max-w-md mx-auto leading-relaxed">
             Open the editor, drop in your screenshot, and have a polished result in under a minute.
           </p>
           <motion.button
@@ -42,7 +42,7 @@ export function CtaSection() {
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </motion.button>
-          <p className="mt-4 text-xs text-zinc-700">Free · No signup · Works in your browser</p>
+          <p className="mt-4 text-xs text-[#9CA3AF]">Free · No signup · Works in your browser</p>
         </motion.div>
       </div>
     </section>

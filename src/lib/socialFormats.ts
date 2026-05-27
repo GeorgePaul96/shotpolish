@@ -82,22 +82,15 @@ export const SOCIAL_FORMATS: Record<string, SocialFormat> = {
   },
 }
 
-// Ordered groups for the format bar
+// Ordered groups for the format bar — core launch platforms only
 export const FORMAT_BAR: Array<{ label: string; id: string }> = [
-  { label: 'Free',                 id: 'free'                 },
-  { label: 'X / Twitter',          id: 'twitter-post'         },
-  { label: 'IG Post',              id: 'instagram-post'       },
-  { label: 'IG Portrait',          id: 'instagram-portrait'   },
-  { label: 'IG Story',             id: 'instagram-story'      },
-  { label: 'LinkedIn Post',        id: 'linkedin-post'        },
-  { label: 'LinkedIn Carousel',    id: 'linkedin-carousel'    },
-  { label: 'Threads',              id: 'threads-post'         },
-  { label: 'Reddit',               id: 'reddit-post'          },
-  { label: 'Product Hunt',         id: 'product-hunt'         },
-  { label: 'YouTube Thumb',        id: 'youtube-thumb'        },
-  { label: 'TikTok Vertical',      id: 'tiktok-vertical'      },
-  { label: 'FB Marketplace',       id: 'facebook-marketplace' },
-  { label: 'OG Image',             id: 'og-image'             },
+  { label: 'Free',          id: 'free'             },
+  { label: 'X / Twitter',   id: 'twitter-post'     },
+  { label: 'IG Post',       id: 'instagram-post'   },
+  { label: 'IG Story',      id: 'instagram-story'  },
+  { label: 'LinkedIn',      id: 'linkedin-post'    },
+  { label: 'Product Hunt',  id: 'product-hunt'     },
+  { label: 'OG Image',      id: 'og-image'         },
 ]
 
 // Multi-export checklist — common launch bundle

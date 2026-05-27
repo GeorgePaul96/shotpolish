@@ -183,10 +183,10 @@ export function LivePreviewSection() {
           className="text-center mb-12"
         >
           <span className="section-tag mb-4 inline-flex">Style presets</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
             Six curated visual styles
           </h2>
-          <p className="mt-3 text-zinc-400 max-w-md mx-auto">
+          <p className="mt-3 text-[#374151] max-w-md mx-auto">
             Pick the aesthetic that fits your brand. Switch instantly — no re-uploading required.
           </p>
         </motion.div>
@@ -204,8 +204,8 @@ export function LivePreviewSection() {
               onClick={() => setActiveTheme(i)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 activeTheme === i
-                  ? 'bg-white/10 border border-white/20 text-white'
-                  : 'text-zinc-500 hover:text-zinc-300 border border-transparent hover:border-white/10'
+                  ? 'bg-white border border-[#DDE0E8] text-[#111827] shadow-sm'
+                  : 'text-[#6B7280] hover:text-[#374151] border border-transparent hover:border-[#E5E7EC]'
               }`}
             >
               <span
@@ -241,7 +241,7 @@ export function LivePreviewSection() {
           key={activeTheme}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-4 text-center text-sm text-zinc-500"
+          className="mt-4 text-center text-sm text-[#6B7280]"
         >
           {PREVIEW_THEMES[activeTheme].label}
         </motion.p>
@@ -253,7 +253,7 @@ export function LivePreviewSection() {
               key={theme.id}
               onClick={() => setActiveTheme(i)}
               className={`relative h-16 rounded-xl overflow-hidden transition-all duration-200 ${
-                activeTheme === i ? 'ring-2 ring-offset-2 ring-offset-[#09090b]' : 'opacity-50 hover:opacity-75'
+                activeTheme === i ? 'ring-2 ring-offset-2 ring-offset-white' : 'opacity-50 hover:opacity-75'
               }`}
               style={{
                 background: theme.bg,

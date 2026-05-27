@@ -6,7 +6,7 @@ import { CtaSection } from '../components/CtaSection'
 
 export function HomePage() {
   return (
-    <main className="min-h-screen bg-[#09090b] text-white">
+    <main className="min-h-screen bg-[#F5F6F8] text-[#111827]">
       <HeroSection />
       <LivePreviewSection />
       <FeaturesSection />

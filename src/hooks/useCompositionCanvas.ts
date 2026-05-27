@@ -47,7 +47,8 @@ export function useCompositionCanvas(
       img.naturalHeight,
       currentDoc.padding,
       currentDoc.headline.text,
-      currentDoc.formatId
+      currentDoc.formatId,
+      currentDoc.frameType,
     )
     
     const scale = cssW / L.compW
@@ -83,13 +84,15 @@ export function useCompositionCanvas(
   useEffect(() => {
     imgRef.current = null
     if (!imageUrl) return
-    
+
     const img = new Image()
     img.onerror = () => {
+      console.error('[useCompositionCanvas] Image failed — URL may be revoked:', imageUrl?.slice(0, 80))
       imgRef.current = null
       setIsRendering(false)
     }
     img.onload = () => {
+      console.log('[useCompositionCanvas] Image loaded:', img.naturalWidth, 'x', img.naturalHeight)
       imgRef.current = img
       schedule()
     }
@@ -130,7 +133,8 @@ export function useCompositionCanvas(
       img.naturalHeight,
       docCopy.padding,
       docCopy.headline.text,
-      docCopy.formatId
+      docCopy.formatId,
+      docCopy.frameType,
     )
     
     const off = document.createElement('canvas')

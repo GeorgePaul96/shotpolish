@@ -92,8 +92,8 @@ function FeatureCard({ icon, title, desc, index }: {
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.45, delay: (index % 3) * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
       whileHover={{ y: -2 }}
-      className="group relative p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02]
-                 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-200 cursor-default"
+      className="group relative p-5 rounded-2xl border border-[#E5E7EC] bg-white
+                 hover:bg-gray-50 hover:border-[#C5CAD8] hover:shadow-card transition-all duration-200 cursor-default"
     >
       {/* Icon */}
       <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/15 flex items-center justify-center
@@ -102,8 +102,8 @@ function FeatureCard({ icon, title, desc, index }: {
       </div>
 
       {/* Content */}
-      <h3 className="text-sm font-semibold text-white tracking-tight mb-1.5">{title}</h3>
-      <p className="text-sm text-zinc-500 leading-relaxed">{desc}</p>
+      <h3 className="text-sm font-semibold text-[#111827] tracking-tight mb-1.5">{title}</h3>
+      <p className="text-sm text-[#6B7280] leading-relaxed">{desc}</p>
 
       {/* Subtle top border highlight on hover */}
       <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl bg-gradient-to-r from-transparent via-accent/20 to-transparent
@@ -121,7 +121,7 @@ export function FeaturesSection() {
   return (
     <section id="features" className="py-24 px-4 relative">
       {/* Subtle separator line */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#E5E7EC] to-transparent" />
 
       <div className="max-w-5xl mx-auto">
         {/* Header */}
@@ -133,12 +133,12 @@ export function FeaturesSection() {
           className="text-center mb-14"
         >
           <span className="section-tag mb-4 inline-flex">Everything you need</span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
             The fastest path from
             <br />
             <span className="text-gradient">raw to remarkable</span>
           </h2>
-          <p className="mt-4 text-zinc-400 max-w-md mx-auto leading-relaxed">
+          <p className="mt-4 text-[#374151] max-w-md mx-auto leading-relaxed">
             Every tool you need to make screenshots worth sharing — nothing more, nothing less.
           </p>
         </motion.div>

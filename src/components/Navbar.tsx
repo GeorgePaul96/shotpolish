@@ -21,7 +21,7 @@ export function Navbar() {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled || isEditor
-          ? 'border-b border-white/[0.06] bg-[#09090b]/90 backdrop-blur-xl'
+          ? 'border-b border-[#E5E7EC] bg-white/90 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.05)]'
           : 'bg-transparent'
       }`}
     >
@@ -32,7 +32,7 @@ export function Navbar() {
             <div className="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold transition-all duration-200 group-hover:bg-accent/20">
               S
             </div>
-            <span className="text-sm font-semibold text-white tracking-tight">
+            <span className="text-sm font-semibold text-[#111827] tracking-tight">
               <span className="text-accent">Shot</span>Polish
             </span>
           </Link>
@@ -40,10 +40,10 @@ export function Navbar() {
           {/* Desktop nav */}
           {!isEditor && (
             <nav className="hidden md:flex items-center gap-1">
-              <a href="#features" className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors duration-150 rounded-lg hover:bg-white/5">
+              <a href="#features" className="px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100">
                 Features
               </a>
-              <a href="#preview" className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors duration-150 rounded-lg hover:bg-white/5">
+              <a href="#preview" className="px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100">
                 Preview
               </a>
             </nav>
@@ -54,7 +54,7 @@ export function Navbar() {
             {isEditor ? (
               <Link
                 to="/"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zinc-400 hover:text-white transition-colors duration-150 rounded-lg hover:bg-white/5"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100"
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                   <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -69,10 +69,9 @@ export function Navbar() {
                 >
                   Open editor
                 </Link>
-                {/* Mobile menu toggle */}
                 <button
                   onClick={() => setMobileOpen(!mobileOpen)}
-                  className="md:hidden p-1.5 text-zinc-400 hover:text-white transition-colors"
+                  className="md:hidden p-1.5 text-[#6B7280] hover:text-[#111827] transition-colors"
                   aria-label="Toggle menu"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -99,11 +98,11 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="md:hidden border-t border-white/[0.06] bg-[#09090b]/95 backdrop-blur-xl px-4 py-3 flex flex-col gap-1"
+            className="md:hidden border-t border-[#E5E7EC] bg-white/95 backdrop-blur-xl px-4 py-3 flex flex-col gap-1"
           >
-            <a href="#features" onClick={() => setMobileOpen(false)} className="px-3 py-2 text-sm text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">Features</a>
-            <a href="#preview" onClick={() => setMobileOpen(false)} className="px-3 py-2 text-sm text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">Preview</a>
-            <div className="pt-2 border-t border-white/[0.06]">
+            <a href="#features" onClick={() => setMobileOpen(false)} className="px-3 py-2 text-sm text-[#6B7280] hover:text-[#111827] rounded-lg hover:bg-gray-100 transition-colors">Features</a>
+            <a href="#preview" onClick={() => setMobileOpen(false)} className="px-3 py-2 text-sm text-[#6B7280] hover:text-[#111827] rounded-lg hover:bg-gray-100 transition-colors">Preview</a>
+            <div className="pt-2 border-t border-[#E5E7EC]">
               <Link to="/editor" onClick={() => setMobileOpen(false)} className="btn-primary w-full justify-center text-xs py-2">
                 Open editor
               </Link>

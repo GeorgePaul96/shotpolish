@@ -3,7 +3,6 @@
 
 import type { ProductContext } from './contextEngine'
 import type { StorySlide } from '../pages/StoryModePage'
-import type { NarrativeSuggestion } from './narrativeSuggestions'
 import type { LaunchTimeline } from './launchTimeline'
 
 export interface WorkspaceVersion {
@@ -26,7 +25,6 @@ export interface LaunchWorkspace {
   context: ProductContext
   slides: StorySlide[]
   exports: ExportHistory[]
-  narrativeSuggestions: NarrativeSuggestion[]
   timeline?: LaunchTimeline | null
   versions: WorkspaceVersion[]
 }

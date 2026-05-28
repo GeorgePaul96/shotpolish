@@ -3,7 +3,6 @@
 // Explains every decision — never silently reorders
 
 import type { StoryRole } from './composition'
-import type { PageType } from './ocr'
 import type { StoryIntent } from './storyTemplates'
 
 export type NarrativePosition = 'opening' | 'explanation' | 'proof' | 'conversion' | 'flexible'
@@ -37,18 +36,6 @@ const ROLE_TO_POSITION: Record<StoryRole, NarrativePosition> = {
   uncertain: 'flexible',
 }
 
-const PAGE_TYPE_TO_POSITION: Record<PageType, NarrativePosition | null> = {
-  onboarding:   'opening',
-  feature_demo: 'explanation',
-  workflow:     'explanation',
-  editor:       'explanation',
-  settings:     'explanation',
-  analytics:    'proof',
-  dashboard:    'proof',
-  pricing:      'conversion',
-  auth:         'conversion',
-  unknown:      null,
-}
 
 const INTENT_TO_ARC: Record<string, NarrativeArc['arcType']> = {
   'product-launch': 'problem-solution',
@@ -64,36 +51,16 @@ export function scoreSlide(
   slideId: string,
   role: StoryRole,
   title: string,
-  pageType?: PageType | null,
 ): SlideArcScore {
   const roleBased = ROLE_TO_POSITION[role]
-  const ocrBased = pageType ? PAGE_TYPE_TO_POSITION[pageType] : null
 
-  // Agreement between role + OCR → high confidence
-  if (ocrBased && ocrBased === roleBased && roleBased !== 'flexible') {
-    return {
-      slideId, position: ocrBased, score: 0.85,
-      reason: `Visual role "${role}" and detected page type "${pageType}" both suggest ${ocrBased} position`,
-    }
-  }
-
-  // OCR strongly overrides for unambiguous types (pricing, auth → conversion; analytics → proof)
-  if (ocrBased && ['conversion', 'proof'].includes(ocrBased)) {
-    return {
-      slideId, position: ocrBased, score: 0.72,
-      reason: `Detected page type "${pageType}" strongly suggests ${ocrBased} position`,
-    }
-  }
-
-  // Role-based with moderate confidence
   if (roleBased !== 'flexible') {
     return {
       slideId, position: roleBased, score: 0.58,
-      reason: `Visual role "${role}" suggests ${roleBased} position`,
+      reason: `Role "${role}" suggests ${roleBased} position`,
     }
   }
 
-  // Title keyword fallback for truly uncertain slides
   const tl = title.toLowerCase()
   if (/sign up|get started|try|free trial|start now/.test(tl))
     return { slideId, position: 'conversion', score: 0.42, reason: 'Title contains CTA language' }
@@ -114,14 +81,13 @@ export interface SlideMeta {
   id: string
   role: StoryRole
   title: string
-  ocrPageType?: PageType | null
 }
 
 export function buildNarrativeArc(
   slides: SlideMeta[],
   intent: StoryIntent,
 ): NarrativeArc {
-  const scores = slides.map(s => scoreSlide(s.id, s.role, s.title, s.ocrPageType))
+  const scores = slides.map(s => scoreSlide(s.id, s.role, s.title))
 
   const buckets: Record<NarrativePosition, string[]> = {
     opening: [], explanation: [], proof: [], conversion: [], flexible: [],

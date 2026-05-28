@@ -13,47 +13,26 @@ import {
   type Callout,
 } from '../lib/composition'
 import { STORY_INTENTS, FORMAT_LABELS, type StoryIntent } from '../lib/storyTemplates'
-import { generatePostingPlan, type PostingPlan } from '../lib/postingGuide'
-import { detectSemanticFocus, type SemanticFocusCandidate, FOCUS_TYPE_LABELS } from '../lib/spotlightDetection'
-import { generateLaunchStrategy, type LaunchStrategy } from '../lib/launchStrategy'
-import {
-  buildNarrativeArc, narrativeOrder, arcDiffersFromCurrent,
-  type NarrativeArc, POSITION_LABELS, POSITION_COLORS, ARC_TYPE_LABELS,
-  type NarrativePosition,
-} from '../lib/narrativeSequencing'
 import { SOCIAL_FORMATS } from '../lib/socialFormats'
 import { track } from '../lib/analytics'
-import { analyzeImageOCR, getOCRReliability, terminateAllWorkers } from '../lib/ocr'
-import { buildVisualOnlyExplanation, buildHybridExplanation, type AutomationExplanation, type VisualSignals } from '../lib/semanticAnalysis'
 import { saveBridgeToEditor, loadBridgeFromStory, loadReturnFromEditor, hasReturnData, clearReturn } from '../lib/compositionBridge'
 import type { BridgeData, StorySessionSnapshot } from '../lib/compositionBridge'
-
-// Grounded Grounding Engines (v3)
-import { inferPresetsFromDescription, type ProductContext, type ProductTone, type LaunchGoal, type ProductType } from '../lib/contextEngine'
-import { buildSignalAssessment, type SignalAssessment, type SignalEvidence } from '../lib/signalEngine'
-import { composeGroundedCaptions } from '../lib/captionComposer'
-import { generateNarrativeSuggestions, type NarrativeSuggestion } from '../lib/narrativeSuggestions'
-import { generateLaunchTimeline, type LaunchTimeline, type TimelinePost } from '../lib/launchTimeline'
+import type { ProductContext } from '../lib/contextEngine'
 import { saveWorkspaceToDB, loadWorkspaceFromDB, deleteWorkspaceFromDB, getLastActiveWorkspaceId, saveLastActiveWorkspaceId, clearLastActiveWorkspacePointer, type LaunchWorkspace } from '../lib/workspaceStore'
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface StorySlide {
+export interface StorySlide {
   id: string
   assetId: string
   role: StoryRole
   roleLabel: string
-  confidence: number
   title: string
   callout: string
   selection: Selection | null
   spotlight?: SpotlightRegion
-  explanation?: AutomationExplanation
   callouts?: Callout[]
-  spotlightCandidates?: SemanticFocusCandidate[]
-  signalAssessment?: SignalAssessment
-  userAdjustedSpotlight?: boolean
 }
 
 interface StoryAsset {
@@ -66,7 +45,7 @@ interface StoryAsset {
   status: 'loading' | 'ready' | 'error'
 }
 
-type StoryStep = 'intent' | 'context' | 'upload' | 'builder'
+type StoryStep = 'intent' | 'upload' | 'builder'
 
 // ─── Off-screen export renderer ──────────────────────────────────────────────
 
@@ -208,7 +187,7 @@ function IntentStep({ onSelect }: { onSelect: (intent: StoryIntent) => void }) {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DDE0E8] bg-gray-50 text-[11px] text-[#6B7280] mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Step 1 of 3 — Choose your story type
+              Step 1 of 2 — Choose your story type
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827]">
               What are you launching?
@@ -289,12 +268,11 @@ function UploadStep({
 }: {
   intent: StoryIntent
   onBack: () => void
-  onContinue: (slides: StorySlide[], assets: Record<string, StoryAsset>, productName: string) => void
+  onContinue: (slides: StorySlide[], assets: Record<string, StoryAsset>, productContext: ProductContext) => void
   createSessionObjectUrl: (file: File) => string
 }) {
-  const [uploadedItems,  setUploadedItems]  = useState<{ file: File; url: string }[]>([])
-  const [productName,    setProductName]    = useState('')
-  const [dragging,       setDragging]       = useState(false)
+  const [uploadedItems, setUploadedItems] = useState<{ file: File; url: string }[]>([])
+  const [dragging,      setDragging]      = useState(false)
   const [dragReorderIdx, setDragReorderIdx] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -364,7 +342,11 @@ function UploadStep({
     })
     
     track('story_upload_complete', { count: uploadedItems.length, intent: intent.id })
-    onContinue(slides, initialAssets, productName.trim())
+    const ctx: ProductContext = {
+      productName: '',
+      shortDescription: '',
+    }
+    onContinue(slides, initialAssets, ctx)
   }
 
   const maxSlides = intent.slides.length
@@ -388,24 +370,12 @@ function UploadStep({
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DDE0E8] bg-gray-50 text-[11px] text-[#6B7280] mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Step 2 of 3 — Add your screenshots
+              Step 2 of 2 — Add your screenshots
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-[#111827]">Add your screenshots</h2>
             <p className="mt-2 text-sm text-[#6B7280]">
               Drop up to {maxSlides} screenshots. We'll suggest a slide order based on the story type.
             </p>
-          </div>
-
-          {/* Product name */}
-          <div className="mb-6">
-            <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Product name <span className="font-normal text-[#9CA3AF]">(used in captions)</span></label>
-            <input
-              type="text"
-              value={productName}
-              onChange={e => setProductName(e.target.value)}
-              placeholder="e.g. Fiora, Notion, Linear…"
-              className="w-full px-3 py-2.5 text-sm rounded-xl border border-[#DDE0E8] bg-gray-50 text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#C5CAD8] transition-colors"
-            />
           </div>
 
           {/* Drop zone */}
@@ -516,66 +486,8 @@ function UploadStep({
 
 // ─── STEP 3: Story Builder ────────────────────────────────────────────────────
 
-function compileCaptions(
-  slides: StorySlide[],
-  productName = '',
-  productContext: ProductContext | null = null,
-): { twitter: string; linkedin: string; producthunt: string } {
-  const ocrDone = slides.filter(s => s.explanation && !s.explanation.ocrPending)
-  const ocrReliability = ocrDone.length > 0 ? 'strong' as const : 'weak' as const
-
-  return composeGroundedCaptions(
-    slides.map(s => ({ role: s.role, title: s.title, callout: s.callout })),
-    productContext || { productName: productName || 'our product', shortDescription: '' },
-    ocrReliability
-  )
-}
-
-function downloadTextFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url; a.download = filename; a.style.display = 'none'
-  document.body.appendChild(a); a.click(); document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
-function PostingGuideRow({ step, caption }: { step: import('../lib/postingGuide').PostingStep; caption: string }) {
-  const [copied, setCopied] = useState(false)
-  const copy = () => {
-    if (!caption) return
-    navigator.clipboard.writeText(caption)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  return (
-    <div className="flex items-start gap-2.5 px-2.5 py-2 rounded-xl bg-gray-50 border border-[#E5E7EC]">
-      <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-black mt-0.5"
-        style={{ background: step.platformColor }}>
-        {step.order}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-1">
-          <p className="text-[11px] font-semibold text-[#111827] truncate">{step.platform}</p>
-          {caption && (
-            <button onClick={copy}
-              className={`flex-shrink-0 text-[9px] px-2 py-0.5 rounded border transition-all ${copied ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-[#DDE0E8] text-[#6B7280] hover:text-[#111827]'}`}>
-              {copied ? 'Copied ✓' : 'Copy'}
-            </button>
-          )}
-        </div>
-        <p className="text-[9px] text-[#6B7280] mt-0.5 leading-snug">{step.timing}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="text-[9px] text-[#9CA3AF] border border-[#E5E7EC] px-1.5 py-0 rounded-full">{step.slideNote}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function ExportModal({
-  intent, slides, assets, themeIndex, padding, shadowOpacity, frameType, productName, onClose,
-  launchStrategy,
+  intent, slides, assets, themeIndex, padding, shadowOpacity, frameType, onClose,
 }: {
   intent: StoryIntent
   slides: StorySlide[]
@@ -584,15 +496,11 @@ function ExportModal({
   padding: number
   shadowOpacity: number
   frameType: FrameType
-  productName: string
   onClose: () => void
-  launchStrategy?: LaunchStrategy | null
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(intent.formats))
-  const [activeTab, setActiveTab] = useState<'formats' | 'captions' | 'strategy'>('formats')
   const [status, setStatus]  = useState<'idle' | 'exporting' | 'done'>('idle')
   const [progress, setProgress] = useState({ slide: 0, format: 0 })
-  const [postingPlan, setPostingPlan] = useState<PostingPlan | null>(null)
 
   const toggle = (id: string) => setSelected(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
@@ -626,58 +534,6 @@ function ExportModal({
       slidesDone++
     }
 
-    // Download captions.txt
-    const caps = compileCaptions(validSlides, productName, productContext)
-    const plan = generatePostingPlan(
-      validSlides.map(s => ({ role: s.role, title: s.title })),
-      intent,
-      Array.from(selected),
-      caps,
-    )
-    const captionsContent = [
-      `LAUNCH KIT — ${productName || intent.label}`,
-      `Generated by ShotPolish · ${new Date().toLocaleDateString()}`,
-      `Intent: ${intent.label} · ${validSlides.length} slides`,
-      '',
-      '=========================================',
-      'X / TWITTER',
-      '=========================================',
-      caps.twitter,
-      '',
-      '=========================================',
-      'LINKEDIN',
-      '=========================================',
-      caps.linkedin,
-      '',
-      '=========================================',
-      'PRODUCT HUNT',
-      '=========================================',
-      caps.producthunt,
-      '',
-      '=========================================',
-      'SLIDE TITLES (in order)',
-      '=========================================',
-      ...validSlides.map((s, i) => `${i + 1}. [${s.roleLabel}] ${s.title}`),
-    ].join('\n')
-    downloadTextFile(captionsContent, `${intent.id}-launch-captions.txt`)
-
-    // Download metadata.json
-    const metadataContent = JSON.stringify({
-      intent: intent.id,
-      themeIndex,
-      padding,
-      frameType,
-      slides: validSlides.map(s => ({
-        id: s.id,
-        role: s.role,
-        title: s.title,
-        callout: s.callout,
-        spotlight: s.spotlight
-      }))
-    }, null, 2)
-    downloadTextFile(metadataContent, `${intent.id}-metadata.json`)
-
-    setPostingPlan(plan)
     setStatus('done')
   }
 
@@ -698,9 +554,9 @@ function ExportModal({
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[#E5E7EC]">
           <div>
-            <h2 className="text-sm font-bold text-[#111827]">Generate Launch Kit</h2>
+            <h2 className="text-sm font-bold text-[#111827]">Export Images</h2>
             <p className="text-xs text-[#6B7280] mt-0.5">
-              {validSlides.length} slide{validSlides.length !== 1 ? 's' : ''} · {totalExports} exports total
+              {validSlides.length} slide{validSlides.length !== 1 ? 's' : ''} · {totalExports} export{totalExports !== 1 ? 's' : ''} total
             </p>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-[#111827] hover:bg-gray-100 transition-all">
@@ -708,159 +564,35 @@ function ExportModal({
           </button>
         </div>
 
-        {/* Tab Selection */}
-        <div className="flex border-b border-[#E5E7EC] px-2 bg-gray-50">
-          {(['formats', 'captions', 'strategy'] as const).map((tab, i) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 text-[10.5px] font-bold transition-all border-b-2 flex items-center justify-center gap-1 ${
-                activeTab === tab ? 'border-accent text-[#111827]' : 'border-transparent text-[#6B7280] hover:text-[#111827]'
-              }`}
-            >
-              {i + 1}.{' '}
-              {tab === 'formats' ? `Formats (${selected.size})` :
-               tab === 'captions' ? 'Captions' : (
-                <span className="flex items-center gap-1">
-                  Strategy
-                  {launchStrategy && launchStrategy.confidence >= 0.6 && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                  )}
-                </span>
-               )}
-            </button>
-          ))}
-        </div>
-
         {status === 'done' ? (
-          <div className="p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${intent.color}20` }}>
-                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" style={{ color: intent.color }}>
-                  <path d="M3 8l3.5 3.5L13 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#111827]">Your launch plan is ready</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">{totalExports} image{totalExports !== 1 ? 's' : ''} + captions downloaded</p>
-              </div>
+          <div className="p-5 flex flex-col items-center gap-4 text-center">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${intent.color}20` }}>
+              <svg className="w-5 h-5" viewBox="0 0 16 16" fill="none" style={{ color: intent.color }}>
+                <path d="M3 8l3.5 3.5L13 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-            {postingPlan && postingPlan.steps.length > 0 ? (
-              <div className="space-y-1.5 mb-4 max-h-56 overflow-y-auto scrollbar-none">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Platform posting order</p>
-                {postingPlan.steps.map(step => {
-                  const captionMap: Record<string, string> = {
-                    'twitter-post': compileCaptions(validSlides, productName, productContext).twitter,
-                    'linkedin-post': compileCaptions(validSlides, productName, productContext).linkedin,
-                    'product-hunt': compileCaptions(validSlides, productName, productContext).producthunt,
-                  }
-                  return (
-                    <PostingGuideRow
-                      key={step.formatId}
-                      step={step}
-                      caption={captionMap[step.formatId] ?? ''}
-                    />
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="space-y-1.5 mb-4">
-                {Array.from(selected).slice(0, 3).map((fmt, i) => {
-                  const fmtInfo = SOCIAL_FORMATS[fmt]
-                  return (
-                    <div key={fmt} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-[#E5E7EC]">
-                      <span className="text-[10px] font-mono text-[#9CA3AF] w-3">{i + 1}</span>
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: fmtInfo?.color ?? '#52525b' }} />
-                      <span className="text-[11px] text-[#374151]">{fmtInfo?.platform ?? fmt}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-            <button onClick={onClose} className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 border border-[#DDE0E8] text-[#111827] hover:text-[#111827] hover:bg-gray-100 transition-all">Done</button>
+            <div>
+              <p className="text-sm font-semibold text-[#111827]">Done!</p>
+              <p className="text-xs text-[#6B7280] mt-0.5">{totalExports} image{totalExports !== 1 ? 's' : ''} downloaded</p>
+            </div>
+            <button onClick={onClose} className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 border border-[#DDE0E8] text-[#111827] hover:bg-gray-200 transition-all">Close</button>
           </div>
         ) : (
           <>
-            {activeTab === 'formats' ? (
-              <div className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Select formats</p>
-                {allFormats.map(f => (
-                  <label key={f.id} className="flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <input type="checkbox" checked={selected.has(f.id)} onChange={() => toggle(f.id)}
-                      className="w-3.5 h-3.5 rounded accent-violet-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-xs text-[#111827]">{f.label}</span>
-                      <span className="text-[10px] text-[#6B7280] ml-1.5">{f.desc}</span>
-                    </div>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.color }} />
-                  </label>
-                ))}
-              </div>
-            ) : activeTab === 'strategy' ? (
-              <div className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-4">
-                {launchTimeline ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[9px] px-2 py-0.5 rounded border border-[#DDE0E8] text-[#374151] bg-gray-50">
-                        {launchTimeline.productTypeLabel}
-                      </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded border border-[#DDE0E8] text-[#374151] bg-gray-50">
-                        Goal: {launchTimeline.primaryGoal}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      {launchTimeline.posts.map((post, idx) => (
-                        <div key={idx} className="px-3 py-2.5 rounded-xl bg-gray-50 border border-[#E5E7EC] space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-[#111827]">{post.title}</span>
-                            <span className="text-[9px] font-mono text-[#6B7280]">{post.platform}</span>
-                          </div>
-                          <p className="text-[9px] text-[#6B7280] leading-snug">{post.purpose}</p>
-                          <div className="text-[8.5px] text-[#9CA3AF] bg-white border border-[#E5E7EC] p-1.5 rounded-lg font-mono">
-                            Focus: {post.slideInstruction}
-                          </div>
-                          <p className="text-[9px] text-[#6B7280] leading-snug">{post.guidanceText}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-1.5 pt-2 border-t border-[#E5E7EC]">
-                      <p className="text-[10px] font-bold text-[#374151]">Timeline Guidance</p>
-                      {launchTimeline.sequencingGuide.map((guide, idx) => (
-                        <p key={idx} className="text-[9px] text-[#6B7280] flex items-start gap-1 leading-relaxed">
-                          <span className="text-[#9CA3AF] mt-0.5 flex-shrink-0">·</span>{guide}
-                        </p>
-                      ))}
-                    </div>
+            <div className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Select formats</p>
+              {allFormats.map(f => (
+                <label key={f.id} className="flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input type="checkbox" checked={selected.has(f.id)} onChange={() => toggle(f.id)}
+                    className="w-3.5 h-3.5 rounded accent-violet-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-[#111827]">{f.label}</span>
+                    <span className="text-[10px] text-[#6B7280] ml-1.5">{f.desc}</span>
                   </div>
-                ) : (
-                  <div className="py-6 text-center">
-                    <p className="text-xs text-[#6B7280]">Strategy timeline loading...</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-4">
-                {Object.entries(compileCaptions(slides, productName, productContext)).map(([network, text]) => (
-                  <div key={network} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">{network}</span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(text)
-                          alert(`${network.toUpperCase()} caption copied!`)
-                        }}
-                        className="text-[9px] font-bold px-2 py-0.5 rounded border border-[#DDE0E8] text-[#374151] hover:text-[#111827] hover:bg-gray-100 transition-all"
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <pre className="p-2.5 rounded-lg border border-[#E5E7EC] bg-white text-[10px] text-[#374151] whitespace-pre-wrap leading-relaxed select-text font-sans">
-                      {text}
-                    </pre>
-                  </div>
-                ))}
-              </div>
-            )}
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.color }} />
+                </label>
+              ))}
+            </div>
 
             <div className="px-5 pb-5 pt-3 border-t border-[#E5E7EC]">
               {status === 'exporting' ? (
@@ -886,7 +618,7 @@ function ExportModal({
                   className="w-full py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ background: intent.color, color: '#0f172a' }}
                 >
-                  Download {totalExports} item{totalExports !== 1 ? 's' : ''} Launch Kit →
+                  Download {totalExports} image{totalExports !== 1 ? 's' : ''} →
                 </button>
               )}
             </div>
@@ -898,7 +630,7 @@ function ExportModal({
 }
 
 function SlideListItem({
-  slide, index, total, isActive, accentColor, arcPosition,
+  slide, index, total, isActive, accentColor,
   onClick, onMoveUp, onMoveDown,
 }: {
   slide: StorySlide
@@ -906,7 +638,6 @@ function SlideListItem({
   total: number
   isActive: boolean
   accentColor: string
-  arcPosition?: NarrativePosition | null
   onClick: () => void
   onMoveUp: () => void
   onMoveDown: () => void
@@ -929,14 +660,6 @@ function SlideListItem({
             <p className={`text-[11px] font-semibold truncate ${isActive ? 'text-accent' : 'text-[#374151]'}`}>
               {slide.roleLabel}
             </p>
-            {arcPosition && arcPosition !== 'flexible' && (
-              <span
-                className="flex-shrink-0 text-[7.5px] font-bold px-1 py-px rounded"
-                style={{ background: `${POSITION_COLORS[arcPosition]}18`, color: POSITION_COLORS[arcPosition] }}
-              >
-                {POSITION_LABELS[arcPosition]}
-              </span>
-            )}
           </div>
           <p className="text-[9px] text-[#9CA3AF] truncate mt-0.5">{slide.title || 'No title'}</p>
         </div>
@@ -964,20 +687,11 @@ function SlideListItem({
   )
 }
 
-const ROLE_EXPLANATIONS: Record<StoryRole, string> = {
-  intro:     'Opening frame — sets the scene before the product is revealed.',
-  context:   'Problem or before-state — shows the pain or the old way.',
-  feature:   'Hero feature — the main capability being presented.',
-  process:   'How it works — a step, workflow, or mechanism.',
-  output:    'Result or after-state — the outcome the user achieves.',
-  cta:       'Call to action — drives the viewer to sign up or try it.',
-  uncertain: 'Role not yet assigned — drag to reorder or set manually.',
-}
 
 function RightPanel({
   slide, slideIndex, totalSlides, theme, padding,
   onUpdateTitle, onUpdateCallout, onClearSelection, onPaddingChange,
-  onUpdateCallouts, productContext,
+  onUpdateCallouts,
 }: {
   slide: StorySlide
   slideIndex: number
@@ -989,172 +703,16 @@ function RightPanel({
   onClearSelection: () => void
   onPaddingChange: (v: number) => void
   onUpdateCallouts: (callouts: Callout[]) => void
-  onApplySuggestion: (c: SemanticFocusCandidate) => void
-  onDismissSuggestion: () => void
-  productContext: ProductContext | null
 }) {
-  const [showWhy, setShowWhy] = useState(false)
-  const explanation = slide.explanation
-  
-  const visualSignals: VisualSignals = useMemo(() => ({
-    uiComplexity: slide.explanation?.visualSignals?.some(s => s.includes('complex')) ? 0.6 : 0.3,
-    textDensity: slide.explanation?.visualSignals?.some(s => s.includes('text')) ? 0.5 : 0.2,
-    hasMetrics: !!(slide.explanation?.visualSignals?.some(s => s.includes('metrics')) || slide.explanation?.semanticSignals?.some(s => s.includes('metric'))),
-    hasCTA: !!(slide.explanation?.visualSignals?.some(s => s.includes('CTA')) || slide.explanation?.semanticSignals?.some(s => s.includes('CTA'))),
-    meanBrightness: 150
-  }), [slide.explanation])
-
-  const ocrDone = slide.explanation && !slide.explanation.ocrPending
-  const ocrDummy = useMemo(() => ({
-    rawText: slide.explanation?.semanticSignals?.join(' ') || '',
-    headings: slide.explanation?.semanticSignals?.filter(s => s.includes('heading')) || [],
-    buttons: slide.explanation?.semanticSignals?.filter(s => s.includes('button')) || [],
-    metrics: slide.explanation?.semanticSignals?.filter(s => s.includes('metric')) || [],
-    labels: [],
-    probableCTA: !!slide.explanation?.semanticSignals?.some(s => s.includes('CTA')),
-    probablePageType: slide.explanation?.probablePageType || 'unknown',
-    confidence: slide.explanation?.confidence || 0
-  }), [slide.explanation])
-
-  const signalAssessment = useMemo(() => {
-    return buildSignalAssessment(slide.id, visualSignals, ocrDone ? ocrDummy : null, productContext)
-  }, [slide.id, visualSignals, ocrDone, ocrDummy, productContext])
-
   return (
     <div className="h-full overflow-y-auto scrollbar-none p-3 pt-11 space-y-4">
-      {/* Slide badge + role */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-mono text-[#9CA3AF]">{slideIndex + 1}/{totalSlides}</span>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${theme.accent}20`, color: theme.accent }}>
-            {slide.roleLabel}
-          </span>
-        </div>
-        {slide.userAdjustedSpotlight && (
-          <span className="text-[8px] bg-gray-50 border border-[#DDE0E8] text-[#6B7280] px-1.5 py-0.5 rounded-full">
-            Focus customized
-          </span>
-        )}
+      {/* Slide counter + role badge */}
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-mono text-[#9CA3AF]">{slideIndex + 1}/{totalSlides}</span>
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: `${theme.accent}20`, color: theme.accent }}>
+          {slide.roleLabel}
+        </span>
       </div>
-
-      {/* Role explanation */}
-      <div className="px-2.5 py-2 rounded-xl bg-gray-50 border border-[#E5E7EC]">
-        <p className="text-[9px] text-[#6B7280] leading-relaxed">{ROLE_EXPLANATIONS[slide.role] ?? ROLE_EXPLANATIONS.uncertain}</p>
-      </div>
-
-      {/* Why this role — expandable explainability */}
-      {explanation && (
-        <div className="rounded-xl border border-[#E5E7EC] overflow-hidden">
-          <button
-            onClick={() => setShowWhy(v => !v)}
-            className="w-full flex items-center justify-between px-2.5 py-2 text-left hover:bg-gray-50 transition-colors"
-          >
-            <span className="text-[9.5px] font-semibold text-[#6B7280]">Why this role?</span>
-            <div className="flex items-center gap-1.5">
-              {explanation.ocrPending && (
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60 animate-pulse" />
-              )}
-              <span className="text-[9.5px] font-semibold text-[#6B7280]">
-                {explanation.ocrPending ? 'Scanning signals...' : 'Signals extracted'}
-              </span>
-              <svg className={`w-3 h-3 text-[#9CA3AF] transition-transform ${showWhy ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none">
-                <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-            </div>
-          </button>
-          {showWhy && (
-            <div className="px-2.5 pb-2.5 space-y-3 border-t border-[#E5E7EC] pt-2">
-              {/* Certainty Badges */}
-              <div>
-                <p className="text-[8.5px] text-[#9CA3AF] uppercase tracking-wider mb-1.5">Certainty Badges</p>
-                <div className="flex flex-wrap gap-1">
-                  {signalAssessment.confidenceBadges.map((badge, idx) => (
-                    <span key={idx} className="text-[8px] font-mono border border-[#DDE0E8] bg-gray-50 text-[#374151] px-1.5 py-0.5 rounded">
-                      {badge}
-                    </span>
-                  ))}
-                  {explanation.ocrPending && (
-                    <span className="text-[8px] font-mono border border-amber-500/20 bg-amber-500/[0.02] text-amber-500 px-1.5 py-0.5 rounded animate-pulse">
-                      Pending text analysis...
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Rationale & Progressive Updates */}
-              <div>
-                <p className="text-[8.5px] text-[#9CA3AF] uppercase tracking-wider mb-1">Signal Grounding</p>
-                {explanation.ocrPending ? (
-                  <div className="space-y-1 pt-0.5">
-                    <p className="text-[9px] text-[#6B7280] leading-snug flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Visual layout signals detected
-                    </p>
-                    <p className="text-[9px] text-[#6B7280] leading-snug flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60 animate-pulse" />
-                      Extracting visible interface text...
-                    </p>
-                    <p className="text-[9px] text-[#6B7280] leading-snug flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-                      Refining launch suggestions...
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {signalAssessment.reasoning.map((r, i) => (
-                      <p key={i} className="text-[9px] text-[#6B7280] leading-snug flex items-start gap-1">
-                        <span className="text-[#9CA3AF] mt-[3px] flex-shrink-0">·</span>{r}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Suggested spotlight */}
-      {(() => {
-        const top = (slide.spotlightCandidates ?? []).find(c => c.confidence >= 0.44)
-        if (!top) return null
-        return (
-          <div className="rounded-xl border border-[#E5E7EC] overflow-hidden">
-            <div className="px-2.5 py-2 flex items-center justify-between">
-              <span className="text-[9.5px] font-semibold text-[#6B7280]">Suggested focus area</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[8.5px] px-1.5 py-px rounded-full border border-[#E5E7EC] text-[#6B7280]">
-                  {FOCUS_TYPE_LABELS[top.type]}
-                </span>
-                <span className={`text-[9px] font-mono ${top.confidence >= 0.65 ? 'text-emerald-500' : 'text-amber-400'}`}>
-                  {Math.round(top.confidence * 100)}%
-                </span>
-              </div>
-            </div>
-            <div className="px-2.5 pb-2.5 space-y-1.5 border-t border-[#E5E7EC]">
-              {top.reasons.slice(0, 2).map((r, i) => (
-                <p key={i} className="text-[9px] text-[#6B7280] leading-snug flex items-start gap-1 pt-1 first:pt-1.5">
-                  <span className="text-[#6B7280] mt-px flex-shrink-0">·</span>{r}
-                </p>
-              ))}
-              <div className="flex gap-1.5 pt-1">
-                <button
-                  onClick={() => onApplySuggestion(top)}
-                  className="flex-1 py-1 rounded-lg text-[9.5px] font-semibold border border-[#DDE0E8] text-[#111827] hover:bg-gray-100 hover:text-[#111827] transition-all"
-                >
-                  Apply suggestion
-                </button>
-                <button
-                  onClick={onDismissSuggestion}
-                  className="px-2.5 py-1 rounded-lg text-[9.5px] border border-[#E5E7EC] text-[#6B7280] hover:text-[#374151] transition-all"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
 
       {/* Title */}
       <div>
@@ -1282,14 +840,13 @@ function ThumbnailCanvas({ decodedImage }: { decodedImage: HTMLImageElement }) {
 }
 
 function BuilderStep({
-  intent, slides, assets, onUpdateSlides, onBack, productName, productContext,
+  intent, slides, assets, onUpdateSlides, onBack, productContext,
 }: {
   intent: StoryIntent
   slides: StorySlide[]
   assets: Record<string, StoryAsset>
   onUpdateSlides: React.Dispatch<React.SetStateAction<StorySlide[]>>
   onBack: () => void
-  productName: string
   productContext: ProductContext | null
 }) {
   const navigate = useNavigate()
@@ -1306,46 +863,7 @@ function BuilderStep({
   const [dragBox,        setDragBox]        = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const [annotateMode,   setAnnotateMode]   = useState(false)
   const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null)
-  const [previousSlidesOrder, setPreviousSlidesOrder] = useState<StorySlide[] | null>(null)
 
-  const launchTimeline = useMemo(() => {
-    return generateLaunchTimeline(slides, productContext)
-  }, [slides, productContext])
-
-  const narrativeSuggestions = useMemo(() => {
-    return generateNarrativeSuggestions(
-      slides.map(s => ({
-        id: s.id,
-        role: s.role,
-        title: s.title,
-        ocrPageType: s.explanation?.probablePageType,
-        ocrConfidence: s.explanation?.confidence,
-        hasMetrics: !!(s.explanation?.visualSignals?.some(vs => vs.includes('metrics')) || s.explanation?.semanticSignals?.some(ss => ss.includes('metric'))),
-        hasCTA: !!(s.explanation?.visualSignals?.some(vs => vs.includes('CTA')) || s.explanation?.semanticSignals?.some(ss => ss.includes('CTA')))
-      })),
-      productContext
-    )
-  }, [slides, productContext])
-
-  const narrativeArc = useMemo(() => {
-    return buildNarrativeArc(
-      slides.map(s => ({ id: s.id, role: s.role, title: s.title, ocrPageType: s.explanation?.probablePageType })),
-      intent
-    )
-  }, [slides, intent])
-
-  const applyNarrativeSuggestion = (suggestion: NarrativeSuggestion) => {
-    setPreviousSlidesOrder([...slides])
-    const idOrder = suggestion.orderedSlideIds
-    const sorted = [...slides].sort((a, b) => idOrder.indexOf(a.id) - idOrder.indexOf(b.id))
-    onUpdateSlides(sorted)
-  }
-
-  const undoNarrativeSuggestion = () => {
-    if (!previousSlidesOrder) return
-    onUpdateSlides(previousSlidesOrder)
-    setPreviousSlidesOrder(null)
-  }
   const [viewportSize,   setViewportSize]   = useState({ width: 0, height: 0 })
 
   const canvasRef   = useRef<HTMLCanvasElement>(null)
@@ -1358,11 +876,6 @@ function BuilderStep({
   const imageDimensions = activeAsset && activeAsset.status === 'ready'
     ? { width: activeAsset.width, height: activeAsset.height }
     : null
-
-  // Terminate OCR worker pool when leaving the builder to free background threads
-  useEffect(() => {
-    return () => { terminateAllWorkers().catch(() => {}) }
-  }, [])
 
   // Track viewport reactively to parent container resize events
   useEffect(() => {
@@ -1442,9 +955,6 @@ function BuilderStep({
     ctx.setTransform(1, 0, 0, 1, 0, 0)
   }, [activeAsset, compositionDoc, L, canvasW, canvasH, themeIndex])
 
-  // Compute launch strategy + narrative arc once all OCR completes
-
-
   const updateSlide = useCallback((index: number, updates: Partial<StorySlide>) => {
     onUpdateSlides(prev => {
       const next = [...prev]
@@ -1460,7 +970,6 @@ function BuilderStep({
     ;[next[from], next[to]] = [next[to], next[from]]
     onUpdateSlides(next)
     setActiveIndex(to)
-    setPreviousSlidesOrder(null) // manual reorder invalidates suggestion undo
   }
 
   const handleEditInEditor = useCallback(async () => {
@@ -1493,13 +1002,11 @@ function BuilderStep({
       themeIndex,
       frameType,
       padding,
-      productName,
       slides: slides.map(s => ({
         id: s.id,
         assetId: s.assetId,
         role: s.role,
         roleLabel: s.roleLabel,
-        confidence: s.confidence,
         title: s.title,
         callout: s.callout,
         selection: s.selection,
@@ -1525,7 +1032,7 @@ function BuilderStep({
 
     saveBridgeToEditor(bridgePayload)
     navigate(`/editor?mode=bridge&slideIndex=${activeIndex}`)
-  }, [activeSlide, activeAsset, assets, slides, intent, themeIndex, frameType, padding, productName, activeIndex, navigate])
+  }, [activeSlide, activeAsset, assets, slides, intent, themeIndex, frameType, padding, activeIndex, navigate])
 
   // Spotlight drawing + annotate mode click handling
   const startDrawing = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -1710,80 +1217,21 @@ function BuilderStep({
                   <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9CA3AF]">
                     Story · {slides.length} slides
                   </p>
-                  <p className="text-[8px] text-[#6B7280] mt-0.5 leading-snug">Suggested order — drag arrows to reorder</p>
+                  <p className="text-[8px] text-[#6B7280] mt-0.5 leading-snug">Drag arrows to reorder</p>
                 </div>
-                {slides.length >= 3 && narrativeSuggestions.length > 0 ? (
-                  <div className="px-2 mb-3 mt-1 space-y-1.5 border border-[#E5E7EC] bg-white p-2 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[8px] font-bold text-[#6B7280] uppercase tracking-wider">Suggested Flows</p>
-                      {previousSlidesOrder && (
-                        <button
-                          onClick={undoNarrativeSuggestion}
-                          className="text-[7.5px] font-bold text-amber-400 hover:text-amber-300 border border-amber-400/20 px-1 py-0.5 rounded transition-all"
-                        >
-                          Undo
-                        </button>
-                      )}
-                    </div>
-                    <div className="space-y-1.5">
-                      {narrativeSuggestions.map(sug => {
-                        const differs = sug.orderedSlideIds.some((id, idx) => id !== slides[idx]?.id)
-                        return (
-                          <div key={sug.id} className="p-1.5 rounded-lg border border-[#E5E7EC] bg-white flex flex-col gap-1">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[9px] font-bold text-[#111827]">{sug.label}</span>
-                              {differs ? (
-                                <button
-                                  onClick={() => applyNarrativeSuggestion(sug)}
-                                  className="text-[7.5px] font-bold bg-gray-50 text-[#374151] hover:text-[#111827] border border-[#DDE0E8] px-1 py-0.5 rounded transition-all"
-                                >
-                                  Apply
-                                </button>
-                              ) : (
-                                <span className="text-[7.5px] text-emerald-500 font-mono">Active</span>
-                              )}
-                            </div>
-                            <p className="text-[8px] text-[#6B7280] leading-normal">{sug.description}</p>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  slides.length < 3 && (
-                    <div className="px-2 py-2 mb-2 border border-[#E5E7EC] bg-gray-50 rounded-xl text-center">
-                      <p className="text-[8px] text-[#6B7280]">Not enough slides for narrative sequencing (requires 3+)</p>
-                    </div>
-                  )
-                )}
-                {slides.map((slide, i) => {
-                  const getArcPos = (): NarrativePosition => {
-                    const ROLE_TO_POSITION: Record<StoryRole, NarrativePosition> = {
-                      intro:     'opening',
-                      context:   'opening',
-                      feature:   'explanation',
-                      process:   'explanation',
-                      output:    'proof',
-                      cta:       'conversion',
-                      uncertain: 'flexible',
-                    }
-                    return ROLE_TO_POSITION[slide.role] ?? 'flexible'
-                  }
-                  return (
-                    <SlideListItem
-                      key={slide.id}
-                      slide={slide}
-                      index={i}
-                      total={slides.length}
-                      isActive={i === activeIndex}
-                      accentColor={intent.color}
-                      arcPosition={getArcPos()}
-                      onClick={() => setActiveIndex(i)}
-                      onMoveUp={() => moveSlide(i, -1)}
-                      onMoveDown={() => moveSlide(i, 1)}
-                    />
-                  )
-                })}
+                {slides.map((slide, i) => (
+                  <SlideListItem
+                    key={slide.id}
+                    slide={slide}
+                    index={i}
+                    total={slides.length}
+                    isActive={i === activeIndex}
+                    accentColor={intent.color}
+                    onClick={() => setActiveIndex(i)}
+                    onMoveUp={() => moveSlide(i, -1)}
+                    onMoveDown={() => moveSlide(i, 1)}
+                  />
+                ))}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1900,7 +1348,6 @@ function BuilderStep({
                 <RightPanel
                   slide={activeSlide}
                   slideIndex={activeIndex}
-                  productContext={productContext}
                   totalSlides={slides.length}
                   theme={theme}
                   padding={padding}
@@ -1909,11 +1356,6 @@ function BuilderStep({
                   onClearSelection={() => updateSlide(activeIndex, { selection: null })}
                   onPaddingChange={setPadding}
                   onUpdateCallouts={callouts => updateSlide(activeIndex, { callouts })}
-                  onApplySuggestion={c => updateSlide(activeIndex, {
-                    selection: { x: c.x, y: c.y, w: c.width, h: c.height },
-                    spotlightCandidates: [],
-                  })}
-                  onDismissSuggestion={() => updateSlide(activeIndex, { spotlightCandidates: [] })}
                 />
               </motion.div>
             )}
@@ -1932,9 +1374,7 @@ function BuilderStep({
             padding={padding}
             shadowOpacity={shadowOpacity}
             frameType={frameType}
-            productName={productName}
             onClose={() => setShowExport(false)}
-            launchStrategy={launchStrategy}
           />
         )}
       </AnimatePresence>
@@ -1942,7 +1382,15 @@ function BuilderStep({
   )
 }
 
-// ─── Pixel Signal Analyzer (heuristic, not semantic) ─────────────────────────
+// ─── Pixel Signal Analyzer (heuristic) ───────────────────────────────────────
+interface VisualSignals {
+  uiComplexity: number
+  textDensity: number
+  hasMetrics: boolean
+  hasCTA: boolean
+  meanBrightness: number
+}
+
 function analyzeScreenshot(img: HTMLImageElement): VisualSignals {
   const canvas = document.createElement('canvas')
   canvas.width = 50
@@ -2047,14 +1495,9 @@ function sequenceStory(
       bestFitRole = 'context'
     }
 
-    const confidence = Math.round((0.65 + score * 0.05) * 100) / 100
-    const explanation = buildVisualOnlyExplanation(analysis)
-
     return {
       ...slide,
       role: bestFitRole,
-      confidence,
-      explanation: { ...explanation, assignedRole: bestFitRole },
     }
   })
 
@@ -2093,7 +1536,6 @@ export function StoryModePage() {
   const [intent,      setIntent]      = useState<StoryIntent | null>(null)
   const [slides,      setSlides]      = useState<StorySlide[]>([])
   const [assets,      setAssets]      = useState<Record<string, StoryAsset>>({})
-  const [productName, setProductName] = useState('')
   const [productContext, setProductContext] = useState<ProductContext | null>(null)
   const [showRestoreBanner, setShowRestoreBanner] = useState(false)
   const [restoreWorkspaceId, setRestoreWorkspaceId] = useState<string | null>(null)
@@ -2114,8 +1556,7 @@ export function StoryModePage() {
       if (restored) {
         const { workspace, assetFiles } = restored
         setProductContext(workspace.context)
-        setProductName(workspace.context.productName)
-        
+
         const restoredIntent = STORY_INTENTS.find(i => i.id === (workspace as any).intentId) || STORY_INTENTS[0]
         setIntent(restoredIntent)
         setSlides(workspace.slides)
@@ -2153,7 +1594,7 @@ export function StoryModePage() {
     const wsId = productContext.productName.replace(/\s+/g, '-').toLowerCase() || 'draft-workspace'
     const ws: LaunchWorkspace = {
       id: wsId, createdAt: Date.now(), updatedAt: Date.now(),
-      context: productContext, slides, exports: [], narrativeSuggestions: [], versions: [],
+      context: productContext, slides, exports: [], versions: [],
       intentId: intent?.id || 'feature-launch',
     } as any
 
@@ -2180,7 +1621,7 @@ export function StoryModePage() {
     const wsId = productContext.productName.replace(/\s+/g, '-').toLowerCase() || 'draft-workspace'
     const ws: LaunchWorkspace = {
       id: wsId, createdAt: Date.now(), updatedAt: Date.now(),
-      context: productContext, slides, exports: [], narrativeSuggestions: [], versions: [],
+      context: productContext, slides, exports: [], versions: [],
       intentId: intent?.id || 'feature-launch',
     } as any
 
@@ -2206,70 +1647,20 @@ export function StoryModePage() {
   }, [])
 
   // Automatically sequence story slides once all assets are decoded and ready in memory
+  const [sequenced, setSequenced] = useState(false)
   useEffect(() => {
-    if (step !== 'builder' || !intent || slides.length === 0) return
+    if (step !== 'builder' || !intent || slides.length === 0 || sequenced) return
 
     const allReady = slides.every(slide => {
       const asset = assets[slide.assetId]
       return asset && asset.status === 'ready'
     })
 
-    const needsSequencing = slides.some(slide => slide.confidence === 0)
-
-    if (allReady && needsSequencing) {
+    if (allReady) {
       setSlides(prev => sequenceStory(prev, assets, intent))
+      setSequenced(true)
     }
-  }, [assets, slides, step, intent])
-
-  // Async OCR enhancement — runs after visual-only sequencing, upgrades explanations with text signals
-  const readyAssetCount = Object.values(assets).filter(a => a.status === 'ready').length
-
-  useEffect(() => {
-    if (step !== 'builder') return
-    if (readyAssetCount === 0) return
-    const pendingSlides = slides.filter(s => s.explanation?.ocrPending === true)
-    if (pendingSlides.length === 0) return
-
-    let cancelled = false
-
-    const runOCR = async () => {
-      for (const slide of pendingSlides) {
-        if (cancelled) break
-        const asset = assets[slide.assetId]
-        if (!asset || asset.status !== 'ready') continue
-
-        try {
-          const ocr = await analyzeImageOCR(asset.objectUrl)
-          if (cancelled) break
-
-          // Spotlight detection — non-blocking, uses OCR context
-          const focusCandidates = await detectSemanticFocus(asset.objectUrl, ocr)
-          if (cancelled) break
-
-          // Re-compute visual signals for this slide to build hybrid explanation
-          const imgForAnalysis = asset.decodedImage
-          if (!imgForAnalysis) continue
-          const visual = analyzeScreenshot(imgForAnalysis)
-          const hybridExplanation = buildHybridExplanation(ocr, visual)
-
-          setSlides(prev => prev.map(s =>
-            s.id === slide.id
-              ? {
-                  ...s,
-                  explanation: { ...hybridExplanation, assignedRole: s.role },
-                  spotlightCandidates: focusCandidates,
-                }
-              : s
-          ))
-        } catch {
-          // OCR or spotlight failure — leave existing visual-only explanation in place
-        }
-      }
-    }
-
-    runOCR()
-    return () => { cancelled = true }
-  }, [step, slides.length, readyAssetCount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [assets, slides, step, intent, sequenced])
 
   // Bridge restore — runs once on mount when returning from editor
   useEffect(() => {
@@ -2291,8 +1682,7 @@ export function StoryModePage() {
           title: returnedSlide.title,
           callout: returnedSlide.callout,
           selection: returnedSlide.selection,
-          confidence: s.confidence,
-        }
+          }
       }
       return s
     })
@@ -2310,7 +1700,6 @@ export function StoryModePage() {
     setIntent(restoredIntent)
     setSlides(restoredSlides)
     setAssets(initialAssets)
-    setProductName(session.productName)
     setStep('builder')
     clearReturn()
     window.history.replaceState({}, '', '/story')
@@ -2377,203 +1766,12 @@ export function StoryModePage() {
     }
   }
 
-function ContextStep({
-  intent,
-  onBack,
-  onContinue,
-}: {
-  intent: StoryIntent
-  onBack: () => void
-  onContinue: (context: ProductContext) => void
-}) {
-  const [productName, setProductName] = useState('')
-  const [shortDescription, setShortDescription] = useState('')
-  const [audience, setAudience] = useState('')
-  const [primaryCTA, setPrimaryCTA] = useState('Try it free')
-  const [tone, setTone] = useState<ProductTone>('founder')
-  const [launchGoal, setLaunchGoal] = useState<LaunchGoal>('product-launch')
-  const [productType, setProductType] = useState<ProductType>('saas')
-  const [showAdvanced, setShowAdvanced] = useState(false)
 
-  // Handle auto-inference
-  const handleDescriptionChange = (text: string) => {
-    setShortDescription(text)
-    if (text.length > 5) {
-      const presets = inferPresetsFromDescription(text)
-      setTone(presets.tone)
-      setLaunchGoal(presets.launchGoal)
-      setProductType(presets.productType)
-    }
-  }
-
-  const handleNext = () => {
-    onContinue({
-      productName: productName.trim() || 'our product',
-      shortDescription: shortDescription.trim() || 'a new release',
-      audience: audience.trim() || undefined,
-      launchGoal,
-      tone,
-      productType,
-      primaryCTA: primaryCTA.trim() || undefined
-    })
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F5F6F8] flex flex-col">
-      <header className="flex items-center gap-3 px-6 h-14 border-b border-[#E5E7EC] flex-shrink-0">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-[#6B7280] hover:text-[#111827] transition-colors text-xs">
-          <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none"><path d="M9 10L5 7l4-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          Back
-        </button>
-        <span className="text-[#D1D5DB]">·</span>
-        <span className="text-sm font-bold tracking-tight text-[#111827]"><span className="text-accent">Shot</span>Polish</span>
-        <span className="text-[9px] text-[#6B7280] border border-[#E5E7EC] px-1.5 py-0.5 rounded-full ml-1">Launch Context</span>
-      </header>
-
-      <div className="flex-1 flex flex-col items-center justify-start px-4 py-12 overflow-y-auto">
-        <div className="w-full max-w-xl space-y-6">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DDE0E8] bg-gray-50 text-[11px] text-[#6B7280] mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Step 2 of 4 — Ground your launch context
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight text-[#111827]">Grounded Context Setup</h2>
-            <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
-              Tell us what you're launching. User context is always weighted highest to generate structurally original stories and captions without guessing.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1.5">Product Name</label>
-              <input
-                type="text"
-                value={productName}
-                onChange={e => setProductName(e.target.value)}
-                placeholder="e.g. Notion, Linear, ShotPolish..."
-                className="w-full px-3 py-2.5 text-sm rounded-xl border border-[#DDE0E8] bg-gray-50 text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#C5CAD8] transition-colors"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1.5">What are you launching? (Single sentence)</label>
-              <textarea
-                value={shortDescription}
-                onChange={e => handleDescriptionChange(e.target.value)}
-                placeholder="e.g. We built a developer analytics dashboard for tracking API reliability..."
-                className="w-full h-24 px-3 py-2.5 text-sm rounded-xl border border-[#DDE0E8] bg-gray-50 text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#C5CAD8] transition-colors resize-none"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Type (Inferred)</label>
-                <select
-                  value={productType}
-                  onChange={e => setProductType(e.target.value as ProductType)}
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#DDE0E8] bg-white text-[#111827] outline-none focus:border-[#C5CAD8] transition-colors"
-                >
-                  <option value="saas">SaaS platform</option>
-                  <option value="developer-tool">Dev tool</option>
-                  <option value="consumer-app">Consumer app</option>
-                  <option value="ai-product">AI Product</option>
-                  <option value="fintech">Fintech tool</option>
-                  <option value="design-tool">Design utility</option>
-                  <option value="analytics">Analytics tool</option>
-                  <option value="other">General product</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Tone (Inferred)</label>
-                <select
-                  value={tone}
-                  onChange={e => setTone(e.target.value as ProductTone)}
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#DDE0E8] bg-white text-[#111827] outline-none focus:border-[#C5CAD8] transition-colors"
-                >
-                  <option value="founder">Founder (Standard)</option>
-                  <option value="technical">Technical (Builders)</option>
-                  <option value="minimal">Minimal (Sleek)</option>
-                  <option value="bold">Bold (Hype)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Launch Goal (Inferred)</label>
-                <select
-                  value={launchGoal}
-                  onChange={e => setLaunchGoal(e.target.value as LaunchGoal)}
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#DDE0E8] bg-white text-[#111827] outline-none focus:border-[#C5CAD8] transition-colors"
-                >
-                  <option value="product-launch">Major Launch</option>
-                  <option value="feature-launch">New Feature</option>
-                  <option value="beta">Beta Release</option>
-                  <option value="redesign">Redesign/Revamp</option>
-                  <option value="growth-update">Growth/Milestone</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Advanced toggle */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(v => !v)}
-                className="text-xs text-[#6B7280] hover:text-[#111827] flex items-center gap-1.5 transition-colors pt-2"
-              >
-                {showAdvanced ? 'Hide advanced details' : 'Want better launch suggestions? Add audience + CTA.'}
-                <svg className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-              </button>
-
-              {showAdvanced && (
-                <div className="space-y-4 pt-3 border-t border-[#E5E7EC] mt-2">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Target Audience</label>
-                    <input
-                      type="text"
-                      value={audience}
-                      onChange={e => setAudience(e.target.value)}
-                      placeholder="e.g. backend developers, marketing teams, SaaS founders..."
-                      className="w-full px-3 py-2.5 text-sm rounded-xl border border-[#DDE0E8] bg-gray-50 text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#C5CAD8] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#6B7280] mb-1.5">Primary CTA Link or Copy</label>
-                    <input
-                      type="text"
-                      value={primaryCTA}
-                      onChange={e => setPrimaryCTA(e.target.value)}
-                      placeholder="e.g. fiora.io/launch, Get started free..."
-                      className="w-full px-3 py-2.5 text-sm rounded-xl border border-[#DDE0E8] bg-gray-50 text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#C5CAD8] transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="pt-4 flex items-center justify-center gap-4">
-            <button
-              onClick={handleNext}
-              disabled={!productName.trim() || !shortDescription.trim()}
-              className="flex items-center gap-2 px-10 py-3 rounded-xl text-sm font-bold bg-[#e7e9ea] text-black transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 disabled:hover:scale-100"
-            >
-              Continue to Upload
-              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-  const handleContinue = (newSlides: StorySlide[], initialAssets: Record<string, StoryAsset>, name: string) => {
+  const handleContinue = (newSlides: StorySlide[], initialAssets: Record<string, StoryAsset>, ctx: ProductContext) => {
     setSlides(newSlides)
     setAssets(initialAssets)
-    setProductName(name)
+    setProductContext(ctx)
+    setSequenced(false)
     setStep('builder')
 
     // Start background decoding pipeline for all newly created assets
@@ -2614,23 +1812,9 @@ function ContextStep({
           </div>
         )}
         <IntentStep
-          onSelect={i => { setIntent(i); setStep('context') }}
+          onSelect={i => { setIntent(i); setStep('upload') }}
         />
       </div>
-    )
-  }
-
-  if (step === 'context') {
-    return (
-      <ContextStep
-        intent={intent!}
-        onBack={() => setStep('intent')}
-        onContinue={(ctx) => {
-          setProductContext(ctx)
-          setProductName(ctx.productName)
-          setStep('upload')
-        }}
-      />
     )
   }
 
@@ -2638,7 +1822,7 @@ function ContextStep({
     return (
       <UploadStep
         intent={intent!}
-        onBack={() => setStep('context')}
+        onBack={() => setStep('intent')}
         onContinue={handleContinue}
         createSessionObjectUrl={createSessionObjectUrl}
       />
@@ -2652,7 +1836,6 @@ function ContextStep({
       assets={assets}
       onUpdateSlides={setSlides}
       onBack={() => setStep('upload')}
-      productName={productName}
       productContext={productContext}
     />
   )

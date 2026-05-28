@@ -21,13 +21,11 @@ export interface StorySessionSnapshot {
   themeIndex: number
   frameType: FrameType
   padding: number
-  productName: string
   slides: Array<{
     id: string
     assetId: string
     role: StoryRole
     roleLabel: string
-    confidence: number
     title: string
     callout: string
     selection: { x: number; y: number; w: number; h: number } | null

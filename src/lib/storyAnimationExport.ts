@@ -45,7 +45,7 @@ export interface AnimAsset {
   decodedImage: HTMLImageElement | null
   width: number
   height: number
-  status: string
+  status: 'loading' | 'ready' | 'error'
 }
 
 export interface StoryAnimConfig {

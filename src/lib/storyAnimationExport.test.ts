@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { buildFrameSequence } from './storyAnimationExport'
 
 describe('buildFrameSequence', () => {
+  it('returns empty array for 0 slides', () => {
+    expect(buildFrameSequence(0).length).toBe(0)
+  })
+
   it('produces correct frame count for 1 slide (no crossfade)', () => {
     const frames = buildFrameSequence(1)
     // 1.5s × 30fps = 45 frames

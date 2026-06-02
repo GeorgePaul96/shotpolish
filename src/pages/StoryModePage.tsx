@@ -19,6 +19,15 @@ import { saveBridgeToEditor, loadBridgeFromStory, loadReturnFromEditor, hasRetur
 import type { BridgeData, StorySessionSnapshot } from '../lib/compositionBridge'
 import type { ProductContext } from '../lib/contextEngine'
 import { saveWorkspaceToDB, loadWorkspaceFromDB, deleteWorkspaceFromDB, getLastActiveWorkspaceId, saveLastActiveWorkspaceId, clearLastActiveWorkspacePointer, type LaunchWorkspace } from '../lib/workspaceStore'
+import {
+  buildFrameSequence,
+  renderStoryFrame,
+  exportStoryAsVideo,
+  type AnimSlide,
+  type AnimAsset,
+  type StoryAnimConfig,
+} from '../lib/storyAnimationExport'
+import type { ExportProgress, ExportResult } from '../lib/motionExport'
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -487,7 +496,7 @@ function UploadStep({
 // ─── STEP 3: Story Builder ────────────────────────────────────────────────────
 
 function ExportModal({
-  intent, slides, assets, themeIndex, padding, shadowOpacity, frameType, onClose,
+  intent, slides, assets, themeIndex, padding, shadowOpacity, frameType, formatId, onClose,
 }: {
   intent: StoryIntent
   slides: StorySlide[]
@@ -496,11 +505,23 @@ function ExportModal({
   padding: number
   shadowOpacity: number
   frameType: FrameType
+  formatId: string
   onClose: () => void
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(intent.formats))
   const [status, setStatus]  = useState<'idle' | 'exporting' | 'done'>('idle')
   const [progress, setProgress] = useState({ slide: 0, format: 0 })
+  const [animStatus,   setAnimStatus]   = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
+  const [animProgress, setAnimProgress] = useState<ExportProgress | null>(null)
+  const [animResult,   setAnimResult]   = useState<ExportResult | null>(null)
+  const abortRef         = useRef<AbortController | null>(null)
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const previewRafRef    = useRef<number | null>(null)
+  const frameSeqRef      = useRef(buildFrameSequence(slides.length))
+
+  const fmt        = SOCIAL_FORMATS[formatId]
+  const canAnimate = !!(fmt && fmt.width > 0) &&
+    slides.every(s => assets[s.assetId]?.status === 'ready')
 
   const toggle = (id: string) => setSelected(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
@@ -537,6 +558,60 @@ function ExportModal({
     setStatus('done')
   }
 
+  const animConfig: StoryAnimConfig = {
+    formatId,
+    themeIndex,
+    padding,
+    shadowOpacity,
+    frameType,
+  }
+
+  const stopPreview = () => {
+    if (previewRafRef.current !== null) {
+      cancelAnimationFrame(previewRafRef.current)
+      previewRafRef.current = null
+    }
+  }
+
+  const handleAnimExport = async () => {
+    if (!canAnimate || animStatus !== 'idle') return
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    setAnimStatus('exporting')
+    stopPreview()
+    track('story_anim_started', { slides: slides.length })
+    try {
+      const result = await exportStoryAsVideo(
+        slides as AnimSlide[],
+        assets as Record<string, AnimAsset>,
+        animConfig,
+        setAnimProgress,
+        ctrl.signal,
+      )
+      setAnimResult(result)
+      setAnimStatus('done')
+      track('story_anim_complete', { slides: slides.length, format: result.format })
+    } catch {
+      if (!abortRef.current?.signal.aborted) {
+        setAnimStatus('error')
+        track('story_anim_error', { slides: slides.length })
+      }
+    }
+  }
+
+  const handleAnimDownload = () => {
+    if (!animResult) return
+    const a = document.createElement('a')
+    a.href     = animResult.url
+    a.download = `story.${animResult.format}`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    track('story_anim_download', { format: animResult.format })
+    setTimeout(() => URL.revokeObjectURL(animResult.url), 60_000)
+  }
+
   const allFormats = Object.entries(SOCIAL_FORMATS)
     .filter(([id]) => id !== 'free')
     .map(([id, f]) => ({ id, label: f.platform, desc: f.description, color: f.color }))
@@ -545,7 +620,7 @@ function ExportModal({
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={e => e.target === e.currentTarget && onClose()}
+      onClick={e => { if (e.target === e.currentTarget) { abortRef.current?.abort(); stopPreview(); onClose() } }}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -559,7 +634,7 @@ function ExportModal({
               {validSlides.length} slide{validSlides.length !== 1 ? 's' : ''} · {totalExports} export{totalExports !== 1 ? 's' : ''} total
             </p>
           </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-[#111827] hover:bg-gray-100 transition-all">
+          <button onClick={() => { abortRef.current?.abort(); stopPreview(); onClose() }} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7280] hover:text-[#111827] hover:bg-gray-100 transition-all">
             <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>
@@ -1374,6 +1449,7 @@ function BuilderStep({
             padding={padding}
             shadowOpacity={shadowOpacity}
             frameType={frameType}
+            formatId={formatId}
             onClose={() => setShowExport(false)}
           />
         )}

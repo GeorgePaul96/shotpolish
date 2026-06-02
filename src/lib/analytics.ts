@@ -52,4 +52,10 @@ export const Events = {
   // Errors
   renderError:         (message: string)               => track('render_error',     { message }),
   uploadError:         (message: string)               => track('upload_error',     { message }),
+
+  // Story animation
+  storyAnimStarted:    (slides: number)                => track('story_anim_started',  { slides }),
+  storyAnimComplete:   (slides: number, format: string) => track('story_anim_complete', { slides, format }),
+  storyAnimDownload:   (format: string)                 => track('story_anim_download', { format }),
+  storyAnimError:      (slides: number)                 => track('story_anim_error',    { slides }),
 } as const

@@ -14,7 +14,7 @@ import {
 } from '../lib/composition'
 import { STORY_INTENTS, FORMAT_LABELS, type StoryIntent } from '../lib/storyTemplates'
 import { SOCIAL_FORMATS } from '../lib/socialFormats'
-import { track } from '../lib/analytics'
+import { track, Events } from '../lib/analytics'
 import { saveBridgeToEditor, loadBridgeFromStory, loadReturnFromEditor, hasReturnData, clearReturn } from '../lib/compositionBridge'
 import type { BridgeData, StorySessionSnapshot } from '../lib/compositionBridge'
 import type { ProductContext } from '../lib/contextEngine'
@@ -616,7 +616,7 @@ function ExportModal({
     const { signal } = ctrl
     setAnimStatus('exporting')
     stopPreview()
-    track('story_anim_started', { slides: slides.length })
+    Events.storyAnimStarted(slides.length)
     try {
       const result = await exportStoryAsVideo(
         slides as AnimSlide[],
@@ -627,11 +627,11 @@ function ExportModal({
       )
       setAnimResult(result)
       setAnimStatus('done')
-      track('story_anim_complete', { slides: slides.length, format: result.format })
+      Events.storyAnimComplete(slides.length, result.format)
     } catch {
       if (!signal.aborted) {
         setAnimStatus('error')
-        track('story_anim_error', { slides: slides.length })
+        Events.storyAnimError(slides.length)
       }
     }
   }
@@ -645,7 +645,7 @@ function ExportModal({
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    track('story_anim_download', { format: animResult.format })
+    Events.storyAnimDownload(animResult.format)
     setTimeout(() => URL.revokeObjectURL(animResult.url), 60_000)
   }
 

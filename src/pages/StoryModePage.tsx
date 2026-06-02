@@ -517,9 +517,26 @@ function ExportModal({
   const abortRef         = useRef<AbortController | null>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null) // wired to preview canvas in Task 4
   const previewRafRef    = useRef<number | null>(null)
+  const animConfig: StoryAnimConfig = {
+    formatId,
+    themeIndex,
+    padding,
+    shadowOpacity,
+    frameType,
+  }
+
   const frameSeq    = useMemo(() => buildFrameSequence(slides.length), [slides.length])
   const frameSeqRef = useRef(frameSeq)
   useEffect(() => { frameSeqRef.current = frameSeq }, [frameSeq])
+
+  const animConfigRef = useRef(animConfig)
+  useEffect(() => { animConfigRef.current = animConfig })
+
+  const slidesRef = useRef(slides)
+  useEffect(() => { slidesRef.current = slides })
+
+  const assetsRef = useRef(assets)
+  useEffect(() => { assetsRef.current = assets })
 
   const fmt        = SOCIAL_FORMATS[formatId]
   const canAnimate = !!(fmt && fmt.width > 0) &&
@@ -560,14 +577,6 @@ function ExportModal({
     setStatus('done')
   }
 
-  const animConfig: StoryAnimConfig = {
-    formatId,
-    themeIndex,
-    padding,
-    shadowOpacity,
-    frameType,
-  }
-
   const stopPreview = () => {
     if (previewRafRef.current !== null) {
       cancelAnimationFrame(previewRafRef.current)
@@ -589,16 +598,16 @@ function ExportModal({
       const fi        = Math.min(Math.floor(t * 30), frames.length - 1)
       renderStoryFrame(
         frames[fi],
-        slides as AnimSlide[],
-        assets as Record<string, AnimAsset>,
+        slidesRef.current as AnimSlide[],
+        assetsRef.current as Record<string, AnimAsset>,
         previewCanvasRef.current,
-        animConfig,
+        animConfigRef.current,
       )
       previewRafRef.current = requestAnimationFrame(loop)
     }
     previewRafRef.current = requestAnimationFrame(loop)
     return stopPreview
-  }, [canAnimate])  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [canAnimate])
 
   const handleAnimExport = async () => {
     if (!canAnimate || animStatus !== 'idle') return
@@ -713,19 +722,19 @@ function ExportModal({
               </>
             )}
 
-            {animStatus === 'exporting' && animProgress && (
+            {animStatus === 'exporting' && (
               <div>
                 <div className="flex items-center justify-between text-[10px] text-[#6B7280] mb-1.5">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 border-2 border-[#818cf8] border-t-transparent rounded-full animate-spin inline-block" />
                     Rendering…
                   </span>
-                  <span style={{ color: intent.color }}>{animProgress.percent}%</span>
+                  <span style={{ color: intent.color }}>{animProgress?.percent ?? 0}%</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-[#E5E7EC] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
-                    style={{ width: `${animProgress.percent}%`, background: intent.color }}
+                    style={{ width: `${animProgress?.percent ?? 0}%`, background: intent.color }}
                   />
                 </div>
               </div>

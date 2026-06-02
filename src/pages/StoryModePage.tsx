@@ -515,9 +515,11 @@ function ExportModal({
   const [animProgress, setAnimProgress] = useState<ExportProgress | null>(null)
   const [animResult,   setAnimResult]   = useState<ExportResult | null>(null)
   const abortRef         = useRef<AbortController | null>(null)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null) // wired to preview canvas in Task 4
   const previewRafRef    = useRef<number | null>(null)
-  const frameSeqRef      = useRef(buildFrameSequence(slides.length))
+  const frameSeq    = useMemo(() => buildFrameSequence(slides.length), [slides.length])
+  const frameSeqRef = useRef(frameSeq)
+  useEffect(() => { frameSeqRef.current = frameSeq }, [frameSeq])
 
   const fmt        = SOCIAL_FORMATS[formatId]
   const canAnimate = !!(fmt && fmt.width > 0) &&
@@ -577,6 +579,7 @@ function ExportModal({
     if (!canAnimate || animStatus !== 'idle') return
     const ctrl = new AbortController()
     abortRef.current = ctrl
+    const { signal } = ctrl
     setAnimStatus('exporting')
     stopPreview()
     track('story_anim_started', { slides: slides.length })
@@ -586,13 +589,13 @@ function ExportModal({
         assets as Record<string, AnimAsset>,
         animConfig,
         setAnimProgress,
-        ctrl.signal,
+        signal,
       )
       setAnimResult(result)
       setAnimStatus('done')
       track('story_anim_complete', { slides: slides.length, format: result.format })
     } catch {
-      if (!abortRef.current?.signal.aborted) {
+      if (!signal.aborted) {
         setAnimStatus('error')
         track('story_anim_error', { slides: slides.length })
       }

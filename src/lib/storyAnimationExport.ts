@@ -24,7 +24,7 @@ export interface FrameSpec {
   type: 'slide' | 'crossfade'
   slideIndex: number
   localProgress: number
-  crossfadeAlpha?: number      // opacity of outgoing slide (1→0); only on crossfade frames
+  crossfadeAlpha?: number      // complement of incoming slide opacity: 1.0=invisible, 0.0=fully shown; only on crossfade frames
   nextSlideIndex?: number      // only on crossfade frames
   nextSlideProgress?: number   // motionProgress for incoming slide; only on crossfade frames
 }
@@ -140,15 +140,6 @@ function renderSlideToCanvas(
   }, L, motionProgress)
 }
 
-// Two offscreen canvases allocated once and reused across frames.
-let _offA: HTMLCanvasElement | null = null
-let _offB: HTMLCanvasElement | null = null
-function offscreens(): [HTMLCanvasElement, HTMLCanvasElement] {
-  if (!_offA) _offA = document.createElement('canvas')
-  if (!_offB) _offB = document.createElement('canvas')
-  return [_offA, _offB]
-}
-
 // ── renderStoryFrame ──────────────────────────────────────────────────────────
 
 export function renderStoryFrame(
@@ -157,6 +148,8 @@ export function renderStoryFrame(
   assets: Record<string, AnimAsset>,
   canvas: HTMLCanvasElement,
   config: StoryAnimConfig,
+  offA?: HTMLCanvasElement,
+  offB?: HTMLCanvasElement,
 ): void {
   const fmt = SOCIAL_FORMATS[config.formatId]
   if (!fmt || fmt.width === 0) return   // free format not supported for animation
@@ -174,21 +167,22 @@ export function renderStoryFrame(
   }
 
   // Crossfade: draw outgoing slide at full opacity, draw incoming on top with rising alpha.
-  const [offA, offB] = offscreens()
+  const a = offA ?? document.createElement('canvas')
+  const b = offB ?? document.createElement('canvas')
   const slideA = slides[spec.slideIndex]
   const assetA = assets[slideA.assetId]
-  if (assetA?.decodedImage) renderSlideToCanvas(offA, slideA, assetA, 1.0, config)
+  if (assetA?.decodedImage) renderSlideToCanvas(a, slideA, assetA, 1.0, config)
 
   const slideB = slides[spec.nextSlideIndex!]
   const assetB = assets[slideB.assetId]
-  if (assetB?.decodedImage) renderSlideToCanvas(offB, slideB, assetB, spec.nextSlideProgress ?? 0, config)
+  if (assetB?.decodedImage) renderSlideToCanvas(b, slideB, assetB, spec.nextSlideProgress ?? 0, config)
 
   const ctx = canvas.getContext('2d')
   if (!ctx) return
   ctx.globalAlpha = 1.0
-  if (offA.width > 0) ctx.drawImage(offA, 0, 0, canvas.width, canvas.height)
+  if (a.width > 0) ctx.drawImage(a, 0, 0, canvas.width, canvas.height)
   ctx.globalAlpha = 1.0 - (spec.crossfadeAlpha ?? 1.0)  // incoming slide opacity
-  if (offB.width > 0) ctx.drawImage(offB, 0, 0, canvas.width, canvas.height)
+  if (b.width > 0) ctx.drawImage(b, 0, 0, canvas.width, canvas.height)
   ctx.globalAlpha = 1.0
 }
 
@@ -203,6 +197,7 @@ export async function exportStoryAsVideo(
 ): Promise<ExportResult> {
   const fmt = SOCIAL_FORMATS[config.formatId]
   if (!fmt || fmt.width === 0) throw new Error('Animated export requires a fixed social format (not "free").')
+  if (slides.length === 0) throw new Error('Cannot export an empty story.')
 
   const frameSeq    = buildFrameSequence(slides.length)
   const totalFrames = frameSeq.length
@@ -211,9 +206,12 @@ export async function exportStoryAsVideo(
   exportCanvas.width  = fmt.width
   exportCanvas.height = fmt.height
 
+  const offA = document.createElement('canvas')
+  const offB = document.createElement('canvas')
+
   const renderFrame = (progress: number) => {
-    const fi = Math.min(Math.round(progress * (totalFrames - 1)), totalFrames - 1)
-    renderStoryFrame(frameSeq[fi], slides, assets, exportCanvas, config)
+    const fi = Math.min(Math.floor(progress * totalFrames), totalFrames - 1)
+    renderStoryFrame(frameSeq[fi], slides, assets, exportCanvas, config, offA, offB)
   }
 
   return exportMotionVideo(exportCanvas, totalFrames, FPS, renderFrame, onProgress, signal)

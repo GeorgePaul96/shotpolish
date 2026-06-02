@@ -575,6 +575,31 @@ function ExportModal({
     }
   }
 
+  useEffect(() => {
+    if (!canAnimate || !previewCanvasRef.current) return
+    const frames = frameSeqRef.current
+    let startTime: number | null = null
+
+    const loop = (ts: number) => {
+      if (!previewCanvasRef.current) return
+      if (startTime === null) startTime = ts
+      const elapsedS  = (ts - startTime) / 1000
+      const totalS    = frames.length / 30
+      const t         = elapsedS % totalS
+      const fi        = Math.min(Math.floor(t * 30), frames.length - 1)
+      renderStoryFrame(
+        frames[fi],
+        slides as AnimSlide[],
+        assets as Record<string, AnimAsset>,
+        previewCanvasRef.current,
+        animConfig,
+      )
+      previewRafRef.current = requestAnimationFrame(loop)
+    }
+    previewRafRef.current = requestAnimationFrame(loop)
+    return stopPreview
+  }, [canAnimate])  // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleAnimExport = async () => {
     if (!canAnimate || animStatus !== 'idle') return
     const ctrl = new AbortController()
@@ -642,6 +667,98 @@ function ExportModal({
           </button>
         </div>
 
+        {/* ── Animated Story section ─────────────────────────────── */}
+        <div className="px-5 pt-4 pb-3 border-b border-[#E5E7EC]">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">
+            Animated Story
+          </p>
+
+          {/* Preview canvas */}
+          <div
+            className="relative rounded-xl overflow-hidden bg-[#06080f]"
+            style={{ aspectRatio: fmt?.width && fmt?.height ? `${fmt.width} / ${fmt.height}` : '16 / 9' }}
+          >
+            <canvas
+              ref={previewCanvasRef}
+              className="w-full h-full"
+              style={{ display: 'block' }}
+            />
+            {canAnimate && (
+              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider text-white/70 bg-black/50 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse" />
+                Preview
+              </div>
+            )}
+          </div>
+
+          {/* Export controls */}
+          <div className="mt-2">
+            {animStatus === 'idle' && (
+              <>
+                <button
+                  onClick={handleAnimExport}
+                  disabled={!canAnimate}
+                  className="w-full py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={canAnimate ? { background: intent.color, color: '#0f172a' } : { background: '#27272a', color: '#71717a' }}
+                >
+                  Export as Video →
+                </button>
+                {!canAnimate && (
+                  <p className="text-[10px] text-[#9CA3AF] text-center mt-1">
+                    {!fmt || fmt.width === 0
+                      ? 'Select a social format to enable animated export'
+                      : 'Waiting for screenshots to load…'}
+                  </p>
+                )}
+              </>
+            )}
+
+            {animStatus === 'exporting' && animProgress && (
+              <div>
+                <div className="flex items-center justify-between text-[10px] text-[#6B7280] mb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 border-2 border-[#818cf8] border-t-transparent rounded-full animate-spin inline-block" />
+                    Rendering…
+                  </span>
+                  <span style={{ color: intent.color }}>{animProgress.percent}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-[#E5E7EC] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${animProgress.percent}%`, background: intent.color }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {animStatus === 'done' && animResult && (
+              <div className="flex items-center gap-3 bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl px-3 py-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#34d399] flex items-center justify-center text-sm flex-shrink-0">✓</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-[#111827]">{animResult.format.toUpperCase()} ready</p>
+                  <p className="text-[10px] text-[#6B7280]">
+                    {(animResult.blob.size / (1024 * 1024)).toFixed(1)} MB
+                  </p>
+                </div>
+                <button
+                  onClick={handleAnimDownload}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#34d399] text-[#0f172a] flex-shrink-0"
+                >
+                  ↓ Save
+                </button>
+              </div>
+            )}
+
+            {animStatus === 'error' && (
+              <div className="text-[11px] text-red-400 text-center py-1">
+                Export failed.{' '}
+                <button onClick={() => setAnimStatus('idle')} className="underline">Try again</button>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* ── End Animated Story section ──────────────────────────── */}
+
         {status === 'done' ? (
           <div className="p-5 flex flex-col items-center gap-4 text-center">
             <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${intent.color}20` }}>
@@ -657,8 +774,11 @@ function ExportModal({
           </div>
         ) : (
           <>
-            <div className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Select formats</p>
+            <div
+              className="px-5 py-4 max-h-64 overflow-y-auto scrollbar-none space-y-1"
+              style={animStatus === 'exporting' ? { opacity: 0.4, pointerEvents: 'none' } : {}}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Static Slides</p>
               {allFormats.map(f => (
                 <label key={f.id} className="flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                   <input type="checkbox" checked={selected.has(f.id)} onChange={() => toggle(f.id)}

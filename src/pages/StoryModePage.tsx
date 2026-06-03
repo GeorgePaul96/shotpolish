@@ -42,6 +42,10 @@ export interface StorySlide {
   selection: Selection | null
   spotlight?: SpotlightRegion
   callouts?: Callout[]
+  // Immutable upload index — no automated process may change this.
+  // User order is canonical: slides must always render in this sequence
+  // unless the user explicitly reorders them via drag-and-drop or arrow controls.
+  userDefinedPosition: number
 }
 
 interface StoryAsset {
@@ -343,10 +347,10 @@ function UploadStep({
         assetId,
         role: mapTemplateRoleToStoryRole(template.role),
         roleLabel: template.label,
-        confidence: 0,
         title: template.defaultTitle,
         callout: template.defaultCallout,
         selection: null,
+        userDefinedPosition: i,
       }
     })
     
@@ -1767,7 +1771,10 @@ export function StoryModePage() {
 
         const restoredIntent = STORY_INTENTS.find(i => i.id === (workspace as any).intentId) || STORY_INTENTS[0]
         setIntent(restoredIntent)
-        setSlides(workspace.slides)
+        setSlides(workspace.slides.map((slide, index) => ({
+          ...slide,
+          userDefinedPosition: slide.userDefinedPosition ?? index,
+        })))
         
         const initialAssets: Record<string, StoryAsset> = {}
         for (const [assetId, file] of Object.entries(assetFiles)) {
@@ -1881,7 +1888,7 @@ export function StoryModePage() {
     const restoredIntent = STORY_INTENTS.find(i => i.id === session.intentId)
     if (!restoredIntent) return
 
-    const restoredSlides: StorySlide[] = session.slides.map(s => {
+    const restoredSlides: StorySlide[] = session.slides.map((s, index) => {
       if (s.id === bridgeState.sourceSlide.slideId) {
         return {
           ...s,
@@ -1890,9 +1897,13 @@ export function StoryModePage() {
           title: returnedSlide.title,
           callout: returnedSlide.callout,
           selection: returnedSlide.selection,
-          }
+          userDefinedPosition: (s as any).userDefinedPosition ?? index,
+        }
       }
-      return s
+      return {
+        ...s,
+        userDefinedPosition: (s as any).userDefinedPosition ?? index,
+      }
     })
 
     const initialAssets: Record<string, StoryAsset> = {}

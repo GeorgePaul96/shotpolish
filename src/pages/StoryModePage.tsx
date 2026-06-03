@@ -1841,6 +1841,8 @@ export function StoryModePage() {
       setSlides(prev => applyRoleDetection(prev, assets))
       setSequenced(true)
     }
+    // intent is not passed to applyRoleDetection but guards against running before
+    // the user has selected an intent. It must stay in the dep array.
   }, [assets, slides, step, intent, sequenced])
 
   // Bridge restore — runs once on mount when returning from editor

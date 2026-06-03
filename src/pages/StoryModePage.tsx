@@ -1673,72 +1673,37 @@ function analyzeScreenshot(img: HTMLImageElement): VisualSignals {
   }
 }
 
-// ─── Suggested Sequencer — reorder slides by signal score, apply template copy ─
-function sequenceStory(
+// ─── Role Detection — enriches slide metadata without altering order ──────────
+
+// CRITICAL: User order is canonical.
+// This function may update `role` metadata only.
+// It must never reorder slides, reassign positions, or overwrite user-authored text.
+// No automated process may change slide order unless explicitly initiated by the user.
+function applyRoleDetection(
   slides: StorySlide[],
   assets: Record<string, StoryAsset>,
-  intent: StoryIntent
 ): StorySlide[] {
-  const tplSlides = intent.slides
-  const mappedSlides = slides.map((slide, i) => {
+  return slides.map(slide => {
     const asset = assets[slide.assetId]
     if (!asset || asset.status !== 'ready' || !asset.decodedImage) return slide
 
     const analysis = analyzeScreenshot(asset.decodedImage)
-    
-    // Heuristic Scoring formula
+
     let score = 0
-    if (analysis.hasCTA) score += 3
-    if (analysis.hasMetrics) score += 3
+    if (analysis.hasCTA)             score += 3
+    if (analysis.hasMetrics)         score += 3
     if (analysis.uiComplexity > 0.4) score += 2
     if (analysis.textDensity < 0.25) score += 1
 
     let bestFitRole: StoryRole = 'uncertain'
-    if (analysis.hasCTA || score >= 5) {
-      bestFitRole = 'cta'
-    } else if (analysis.hasMetrics || score >= 3) {
-      bestFitRole = 'output'
-    } else if (analysis.uiComplexity > 0.4) {
-      bestFitRole = 'feature'
-    } else if (analysis.textDensity > 0.35) {
-      bestFitRole = 'process'
-    } else if (analysis.textDensity < 0.25) {
-      bestFitRole = 'intro'
-    } else {
-      bestFitRole = 'context'
-    }
+    if      (analysis.hasCTA     || score >= 5) bestFitRole = 'cta'
+    else if (analysis.hasMetrics  || score >= 3) bestFitRole = 'output'
+    else if (analysis.uiComplexity > 0.4)        bestFitRole = 'feature'
+    else if (analysis.textDensity  > 0.35)        bestFitRole = 'process'
+    else if (analysis.textDensity  < 0.25)        bestFitRole = 'intro'
+    else                                          bestFitRole = 'context'
 
-    return {
-      ...slide,
-      role: bestFitRole,
-    }
-  })
-
-  // Sort slides according to standard Story Graph order:
-  // intro -> context -> feature -> process -> output -> cta -> uncertain
-  const ROLE_ORDER: Record<StoryRole, number> = {
-    intro: 0,
-    context: 1,
-    feature: 2,
-    process: 3,
-    output: 4,
-    cta: 5,
-    uncertain: 6
-  }
-
-  const sortedSlides = [...mappedSlides].sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role])
-
-  // Apply titles & templates based on intent slides
-  return sortedSlides.map((slide, i) => {
-    // Pick corresponding template slide text
-    const tpl = tplSlides[i] ?? tplSlides[tplSlides.length - 1] ?? { defaultTitle: '', defaultCallout: '', label: '' }
-    
-    return {
-      ...slide,
-      title: tpl.defaultTitle || 'Launch slide ' + (i + 1),
-      callout: tpl.defaultCallout || 'Feature',
-      roleLabel: tpl.label || 'Step ' + (i + 1),
-    }
+    return { ...slide, role: bestFitRole }
   })
 }
 
@@ -1873,7 +1838,7 @@ export function StoryModePage() {
     })
 
     if (allReady) {
-      setSlides(prev => sequenceStory(prev, assets, intent))
+      setSlides(prev => applyRoleDetection(prev, assets))
       setSequenced(true)
     }
   }, [assets, slides, step, intent, sequenced])

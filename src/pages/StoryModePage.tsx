@@ -1897,12 +1897,12 @@ export function StoryModePage() {
           title: returnedSlide.title,
           callout: returnedSlide.callout,
           selection: returnedSlide.selection,
-          userDefinedPosition: (s as any).userDefinedPosition ?? index,
+          userDefinedPosition: s.userDefinedPosition ?? index,
         }
       }
       return {
         ...s,
-        userDefinedPosition: (s as any).userDefinedPosition ?? index,
+        userDefinedPosition: s.userDefinedPosition ?? index,
       }
     })
 

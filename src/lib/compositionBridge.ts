@@ -29,6 +29,7 @@ export interface StorySessionSnapshot {
     title: string
     callout: string
     selection: { x: number; y: number; w: number; h: number } | null
+    userDefinedPosition?: number
   }>
   assetFiles: Record<string, File>      // File objects survive component unmount
   assetDataUrls: Record<string, string> // data URLs for stable re-rendering

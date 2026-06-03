@@ -78,7 +78,36 @@ return mappedSlides  // same order as input, only role field updated
 
 `confidence: 0` is set at slide creation but never read anywhere in active code. Remove it from the interface and from the `handleContinue` slide construction.
 
-### 6. Update the `sequenced` useEffect call site
+### 6. Add `userDefinedPosition: number` to `StorySlide`
+
+Add a permanent architectural guardrail to the `StorySlide` interface:
+
+```typescript
+export interface StorySlide {
+  // ...existing fields...
+  userDefinedPosition: number  // upload index; immutable — no automated process may change this
+}
+```
+
+Set it once in `handleContinue` from the map index `i`:
+
+```typescript
+userDefinedPosition: i,
+```
+
+`applyRoleDetection` must spread `...slide` and never overwrite `userDefinedPosition`. Add a mandatory comment on the function:
+
+```typescript
+// CRITICAL: User order is canonical.
+// This function may update `role` metadata only.
+// It must never reorder slides, reassign positions, or overwrite user-authored text.
+// No automated process may change slide order unless explicitly initiated by the user.
+function applyRoleDetection(...): StorySlide[] {
+```
+
+**Why `userDefinedPosition` beats a boolean flag:** a boolean at the session level can be silently ignored. A `number` field on each slide is a testable invariant — `slides.every((s, i) => s.userDefinedPosition === i)` should always hold unless the user reordered manually. It also drives the future role-badge feature: "Detected: Feature (slide 3 of 6)."
+
+### 7. Update the `sequenced` useEffect call site
 
 The useEffect calls `sequenceStory` — update to `applyRoleDetection`. No other change to the useEffect logic.
 

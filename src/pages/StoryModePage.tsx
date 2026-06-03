@@ -42,9 +42,10 @@ export interface StorySlide {
   selection: Selection | null
   spotlight?: SpotlightRegion
   callouts?: Callout[]
-  // Immutable upload index — no automated process may change this.
-  // User order is canonical: slides must always render in this sequence
-  // unless the user explicitly reorders them via drag-and-drop or arrow controls.
+  // Records the user's original upload index. Never overwritten by automated processes.
+  // Once automatic reordering is removed, this becomes the enforcement point for
+  // "user order is canonical" — slides render in this order unless the user explicitly
+  // reorders via drag-and-drop or arrow controls.
   userDefinedPosition: number
 }
 
@@ -1897,11 +1898,15 @@ export function StoryModePage() {
           title: returnedSlide.title,
           callout: returnedSlide.callout,
           selection: returnedSlide.selection,
+          // userDefinedPosition was added after some snapshots were taken;
+          // fall back to current iteration order as the best available approximation.
           userDefinedPosition: s.userDefinedPosition ?? index,
         }
       }
       return {
         ...s,
+        // userDefinedPosition was added after some snapshots were taken;
+        // fall back to current iteration order as the best available approximation.
         userDefinedPosition: s.userDefinedPosition ?? index,
       }
     })

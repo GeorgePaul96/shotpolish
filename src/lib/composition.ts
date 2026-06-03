@@ -908,6 +908,8 @@ export function renderComposition(
       rr(ctx, screenshot.x, screenshot.y, screenshot.w, screenshot.h, [cornerR, cornerR, cornerR, cornerR])
     }
     ctx.clip()
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, screenshot.x, screenshot.y, screenshot.w, screenshot.h)
     ctx.restore()
 

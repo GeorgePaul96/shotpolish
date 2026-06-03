@@ -47,7 +47,7 @@ export async function exportMotionVideo(
 ): Promise<ExportResult> {
   const { mimeType, format } = getSupportedVideoMimeType()
   const stream = canvas.captureStream(fps)
-  const recorder = new MediaRecorder(stream, { mimeType })
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 })
   const chunks: Blob[] = []
 
   recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data) }

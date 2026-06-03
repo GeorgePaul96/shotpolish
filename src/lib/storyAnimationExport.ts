@@ -56,6 +56,16 @@ export interface StoryAnimConfig {
   frameType: FrameType
 }
 
+// ── Easing ────────────────────────────────────────────────────────────────────
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t)
+}
+
 // ── buildFrameSequence ────────────────────────────────────────────────────────
 
 export function buildFrameSequence(
@@ -73,7 +83,7 @@ export function buildFrameSequence(
       frames.push({
         type: 'slide',
         slideIndex: si,
-        localProgress: spf > 1 ? f / (spf - 1) : 1.0,
+        localProgress: spf > 1 ? easeOutCubic(f / (spf - 1)) : 1.0,
       })
     }
     if (si < slideCount - 1) {
@@ -83,9 +93,9 @@ export function buildFrameSequence(
           type: 'crossfade',
           slideIndex: si,
           localProgress: 1.0,
-          crossfadeAlpha: 1.0 - t,
+          crossfadeAlpha: 1.0 - smoothstep(t),
           nextSlideIndex: si + 1,
-          nextSlideProgress: Math.max(0, (t - OVERLAP_START) / (1 - OVERLAP_START)),
+          nextSlideProgress: smoothstep(Math.max(0, (t - OVERLAP_START) / (1 - OVERLAP_START))),
         })
       }
     }

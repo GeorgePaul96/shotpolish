@@ -1736,6 +1736,8 @@ export function StoryModePage() {
       const restored = await loadWorkspaceFromDB(restoreWorkspaceId)
       if (restored) {
         const { workspace, assetFiles } = restored
+        // Continue saving back to the same workspace we just restored.
+        workspaceIdRef.current = workspace.id
         setProductContext(workspace.context)
 
         const restoredIntent = STORY_INTENTS.find(i => i.id === (workspace as any).intentId) || STORY_INTENTS[0]
@@ -1771,11 +1773,18 @@ export function StoryModePage() {
   // Tracks which asset IDs have been persisted — avoids re-writing binary files on every text edit
   const savedAssetIdsRef = useRef<Set<string>>(new Set())
 
+  // Stable per-session workspace id. Set once when a story begins (handleContinue),
+  // is restored (handleRestoreWorkspace), or returns from the editor (bridge restore).
+  // Replaces the old productName-derived key, which was always '' → every draft
+  // collided on a single 'draft-workspace' record and silently overwrote prior work.
+  const workspaceIdRef = useRef<string | null>(null)
+
   // 2a. Metadata-only autosave (3s debounce) — triggered by slide text edits, no binary writes
   useEffect(() => {
     if (step !== 'builder' || !productContext || slides.length === 0) return
 
-    const wsId = productContext.productName.replace(/\s+/g, '-').toLowerCase() || 'draft-workspace'
+    const wsId = workspaceIdRef.current
+    if (!wsId) return
     const ws: LaunchWorkspace = {
       id: wsId, createdAt: Date.now(), updatedAt: Date.now(),
       context: productContext, slides, exports: [], versions: [],
@@ -1802,7 +1811,8 @@ export function StoryModePage() {
     }
     if (Object.keys(newAssetFiles).length === 0) return
 
-    const wsId = productContext.productName.replace(/\s+/g, '-').toLowerCase() || 'draft-workspace'
+    const wsId = workspaceIdRef.current
+    if (!wsId) return
     const ws: LaunchWorkspace = {
       id: wsId, createdAt: Date.now(), updatedAt: Date.now(),
       context: productContext, slides, exports: [], versions: [],
@@ -1858,6 +1868,11 @@ export function StoryModePage() {
     const { session } = bridgeState
     const restoredIntent = STORY_INTENTS.find(i => i.id === session.intentId)
     if (!restoredIntent) return
+
+    // Returning from the editor remounts this page, clearing workspaceIdRef.
+    // Adopt the workspace the autosave was already writing to, so edits keep
+    // saving to the same record instead of spawning a new draft each round trip.
+    workspaceIdRef.current = getLastActiveWorkspaceId() ?? crypto.randomUUID()
 
     const restoredSlides: StorySlide[] = session.slides.map((s, index) => {
       if (s.id === bridgeState.sourceSlide.slideId) {
@@ -1962,6 +1977,8 @@ export function StoryModePage() {
 
 
   const handleContinue = (newSlides: StorySlide[], initialAssets: Record<string, StoryAsset>, ctx: ProductContext) => {
+    // New story → new stable workspace id so this draft never overwrites a prior one.
+    workspaceIdRef.current = crypto.randomUUID()
     setSlides(newSlides)
     setAssets(initialAssets)
     setProductContext(ctx)

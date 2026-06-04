@@ -42,12 +42,39 @@ describe('buildFrameSequence', () => {
     expect(cf.nextSlideProgress).toBe(0)
   })
 
-  it('last crossfade frame has crossfadeAlpha ~0 and nextSlideProgress ~1', () => {
+  it('last crossfade frame dissolves to fully opaque but keeps the incoming slide un-revealed', () => {
     const frames = buildFrameSequence(2)
     const cf = frames[52]   // last crossfade frame (index 45+7 = 52)
     expect(cf.type).toBe('crossfade')
+    // Outgoing slide has fully dissolved away (incoming is fully opaque).
     expect(cf.crossfadeAlpha).toBeCloseTo(0.0, 1)
-    expect(cf.nextSlideProgress).toBeCloseTo(1.0, 1)
+    // Incoming slide must NOT have started its reveal during the crossfade —
+    // otherwise it reaches mp=1.0 here then resets to 0 on its own first frame,
+    // producing a one-frame flash (see flicker RCA). It reveals once, in its own frames.
+    expect(cf.nextSlideProgress).toBe(0)
+  })
+
+  it('renders each slide with monotonically non-decreasing motionProgress (no flicker)', () => {
+    // Reconstruct, per slide, the sequence of motionProgress values it is rendered at
+    // across the whole timeline. A flicker is a non-monotonic dip (e.g. 1.0 -> 0).
+    for (const slideCount of [2, 3, 5]) {
+      const frames = buildFrameSequence(slideCount)
+      const perSlide: Record<number, number[]> = {}
+      for (const f of frames) {
+        ;(perSlide[f.slideIndex] ??= []).push(f.localProgress)
+        if (f.type === 'crossfade') {
+          ;(perSlide[f.nextSlideIndex!] ??= []).push(f.nextSlideProgress ?? 0)
+        }
+      }
+      for (const [slideIndex, seq] of Object.entries(perSlide)) {
+        for (let i = 1; i < seq.length; i++) {
+          expect(
+            seq[i],
+            `slide ${slideIndex} motionProgress dipped at step ${i}: ${seq[i - 1]} -> ${seq[i]} (slideCount=${slideCount})`,
+          ).toBeGreaterThanOrEqual(seq[i - 1] - 1e-9)
+        }
+      }
+    }
   })
 
   it('next slide starts after crossfade', () => {

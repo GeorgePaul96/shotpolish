@@ -16,7 +16,6 @@ import { exportMotionVideo, type ExportResult, type ExportProgress } from './mot
 const SLIDE_DURATION_S  = 1.5
 const CROSSFADE_S       = 0.25
 const FPS               = 30
-const OVERLAP_START     = 0.75  // next slide animation begins at 75% of crossfade
 
 // ── Public types ─────────────────────────────────────────────────────────────
 
@@ -95,7 +94,11 @@ export function buildFrameSequence(
           localProgress: 1.0,
           crossfadeAlpha: 1.0 - smoothstep(t),
           nextSlideIndex: si + 1,
-          nextSlideProgress: smoothstep(Math.max(0, (t - OVERLAP_START) / (1 - OVERLAP_START))),
+          // Incoming slide stays at its start state (mp=0) through the crossfade.
+          // It dissolves in un-revealed, then performs its reveal exactly once in
+          // its own slide frames. Pre-animating it here drove mp to 1.0 by the end
+          // of the crossfade, then its own frames reset it to 0 — a one-frame flash.
+          nextSlideProgress: 0,
         })
       }
     }

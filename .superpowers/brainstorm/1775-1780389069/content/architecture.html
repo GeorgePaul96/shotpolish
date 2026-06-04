@@ -1,0 +1,113 @@
+<h2>Section 3 — Architecture</h2>
+<p class="subtitle">What changes, what stays. Green = new code. Gray = unchanged.</p>
+
+<style>
+.arch-box {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.arch-box h4 { margin: 0 0 4px; font-size: 12px; font-weight: 700; }
+.arch-box p  { margin: 0; color: #94a3b8; font-size: 10px; }
+.arch-box code { font-size: 10px; background: rgba(255,255,255,0.07); border-radius: 3px; padding: 1px 4px; }
+.new    { background: #052e16; border: 1px solid #16a34a; color: #86efac; }
+.new h4 { color: #4ade80; }
+.changed { background: #1e1b4b; border: 1px solid #4338ca; color: #c7d2fe; }
+.changed h4 { color: #818cf8; }
+.unchanged { background: #0f172a; border: 1px solid #1e293b; color: #64748b; }
+.unchanged h4 { color: #475569; }
+.arrow { color: #334155; font-size: 18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.legend-dot { width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px; }
+</style>
+
+<!-- Legend -->
+<div style="display:flex;gap:16px;margin-bottom:16px;font-size:10px;color:#94a3b8">
+  <span><span class="legend-dot" style="background:#16a34a"></span>New file</span>
+  <span><span class="legend-dot" style="background:#4338ca"></span>Modified</span>
+  <span><span class="legend-dot" style="background:#1e293b"></span>Unchanged / reused as-is</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+
+  <!-- Row 1: Data source -->
+  <div style="display:flex;gap:10px;align-items:stretch">
+    <div class="arch-box unchanged" style="flex:1">
+      <h4>StorySlide[] + assets</h4>
+      <p>Already in <code>StoryModePage</code> state. Each slide has image, selection, callout, title. No changes needed.</p>
+    </div>
+    <div class="arch-box unchanged" style="flex:1">
+      <h4>renderComposition()</h4>
+      <p><code>composition.ts</code> — unchanged. Already accepts <code>motionProgress: number</code>. Drives all animation via a single float.</p>
+    </div>
+    <div class="arch-box unchanged" style="flex:1">
+      <h4>exportMotionVideo()</h4>
+      <p><code>motionExport.ts</code> — unchanged. MediaRecorder pipeline already handles frame-by-frame canvas capture → MP4/WebM blob.</p>
+    </div>
+  </div>
+
+  <!-- Arrow down -->
+  <div class="arrow">↓ feeds into ↓</div>
+
+  <!-- Row 2: New core module -->
+  <div class="arch-box new">
+    <h4>🆕 src/lib/storyAnimationExport.ts  (~120 lines)</h4>
+    <p>The only genuinely new code. Three functions:</p>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:160px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 10px">
+        <code style="color:#4ade80;font-size:10px">buildFrameSequence(slides, fps)</code>
+        <p style="margin-top:4px">Returns array of FrameSpec: {slideIndex, localProgress, crossfadeAlpha, nextSlideIndex?}. One entry per frame at 30fps. ~40 lines.</p>
+      </div>
+      <div style="flex:1;min-width:160px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 10px">
+        <code style="color:#4ade80;font-size:10px">renderStoryFrame(spec, slides, assets, canvas, config)</code>
+        <p style="margin-top:4px">Renders one frame to a canvas. Handles single-slide and crossfade frames using two offscreen canvases. ~50 lines.</p>
+      </div>
+      <div style="flex:1;min-width:160px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 10px">
+        <code style="color:#4ade80;font-size:10px">exportStoryAsVideo(slides, assets, config, onProgress)</code>
+        <p style="margin-top:4px">Calls buildFrameSequence + renders each frame + feeds to existing exportMotionVideo(). ~30 lines.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow down -->
+  <div class="arrow">↓ used by ↓</div>
+
+  <!-- Row 3: Modified components -->
+  <div style="display:flex;gap:10px;align-items:stretch">
+    <div class="arch-box changed" style="flex:1.5">
+      <h4>✏️ ExportModal (in StoryModePage.tsx)</h4>
+      <p>Add animated export section to existing modal. New state: <code>'animating' | 'anim-done'</code>. Add preview canvas ref + RAF loop. ~80 lines added.</p>
+    </div>
+    <div class="arch-box changed" style="flex:1">
+      <h4>✏️ Analytics (analytics.ts)</h4>
+      <p>4 new events: <code>story_anim_started</code>, <code>story_anim_complete</code>, <code>story_anim_download</code>, <code>story_anim_error</code></p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Total count -->
+<div style="margin-top:16px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;display:flex;gap:24px;justify-content:center">
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:700;color:#4ade80">1</div>
+    <div style="font-size:10px;color:#64748b">new file</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:700;color:#818cf8">2</div>
+    <div style="font-size:10px;color:#64748b">files modified</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:700;color:#e2e8f0">~200</div>
+    <div style="font-size:10px;color:#64748b">lines of new code</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:700;color:#fcd34d">0</div>
+    <div style="font-size:10px;color:#64748b">new dependencies</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:22px;font-weight:700;color:#e2e8f0">5–7</div>
+    <div style="font-size:10px;color:#64748b">build days</div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px">StoryModePage.tsx is currently 1843 lines. The ExportModal changes stay in-file for V0. If it grows past 2200 lines, extract ExportModal to its own component.</p>

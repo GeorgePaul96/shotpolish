@@ -1,0 +1,50 @@
+<h2>3 Implementation Approaches</h2>
+<p class="subtitle">Choose how ambitious V0 should be</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Minimal Wire-Up — 2–3 days</h3>
+      <p><strong>Scope:</strong> Add MP4/WebM export only to the existing Export modal. No GIF (quality risk). No animated preview.</p>
+      <p style="margin-top:8px"><strong>How it works:</strong> User clicks "Export as MP4" → progress bar → file downloads. They don't see the animation before export.</p>
+      <p style="margin-top:8px"><strong>New code:</strong> ~160 lines total. One new file (<code>storyAnimationExport.ts</code>) + ExportModal changes.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Fastest to validate</li><li>Reuses 100% of existing pipeline</li><li>Zero new UI concepts</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Users export blind (no preview)</li><li>No GIF = no Twitter/Slack inline</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>MP4 + Animated Preview — 5–7 days <span style="background:#818cf8;color:#0f172a;padding:2px 8px;border-radius:99px;font-size:11px;margin-left:6px">Recommended</span></h3>
+      <p><strong>Scope:</strong> MP4 export + an animated canvas preview inside the export modal so users see the animation before downloading.</p>
+      <p style="margin-top:8px"><strong>How it works:</strong> Export modal shows a small looping animation preview (200×200px canvas running the full story). Below it: "Download MP4" button.</p>
+      <p style="margin-top:8px"><strong>New code:</strong> ~280 lines. Sequencer + wiring + preview canvas component.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Users see output before exporting</li><li>Higher confidence → more sharing</li><li>Still fast to build</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>2× build time vs A</li><li>Preview canvas adds complexity</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>MP4 + GIF + Preview — 10–14 days</h3>
+      <p><strong>Scope:</strong> Full animated export with both formats, preview, and quality optimization for GIF (dithering, dimension capping, format-specific color profiles).</p>
+      <p style="margin-top:8px"><strong>How it works:</strong> Export modal shows format tabs (MP4 / GIF), quality settings per format, animated preview, and download.</p>
+      <p style="margin-top:8px"><strong>New code:</strong> ~500 lines. Significantly more complexity in GIF pipeline.</p>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Full format coverage</li><li>GIF = Twitter/Slack/Discord inline</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>GIF banding on dark gradients</li><li>High risk of over-engineering</li><li>2–3 week build for a hypothesis</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px;font-size:12px">💡 Recommendation: B if you want user confidence before sharing. A if you want pure speed-of-validation.</p>

@@ -802,7 +802,10 @@ export function EditorPage() {
       imageDataUrl: bridge.sourceSlide.imageDataUrl,
     }
     saveReturnToStory(updated)
-    navigate('/story?bridge=updated')
+    // Replace, don't push: the editor consumed and cleared its bridge payload, so a
+    // pushed history entry would let Back land on a blank editor. Replacing it means
+    // Back from the story returns to wherever the user was before editing.
+    navigate('/story?bridge=updated', { replace: true })
   }
 
   // ── Intent sync ──────────────────────────────────────────────────────────────

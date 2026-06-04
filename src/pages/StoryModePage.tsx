@@ -436,7 +436,10 @@ function UploadStep({
                   const url  = item?.url
                   return (
                     <div
-                      key={slide.role}
+                      // Key by the file's identity (object URL), not the template slot.
+                      // Slot-based keys never change position, so React can't see a
+                      // reorder and the native drag source gets corrupted mid-drag.
+                      key={item?.url ?? `slot-${slide.role}`}
                       draggable={!!file}
                       onDragStart={() => handleDragStart(i)}
                       onDragOver={e => handleDragOverItem(e, i)}

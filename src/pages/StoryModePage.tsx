@@ -279,13 +279,17 @@ function UploadStep({
   onBack,
   onContinue,
   createSessionObjectUrl,
+  initialItems,
 }: {
   intent: StoryIntent
   onBack: () => void
   onContinue: (slides: StorySlide[], assets: Record<string, StoryAsset>, productContext: ProductContext) => void
   createSessionObjectUrl: (file: File) => string
+  // Existing screenshots to rehydrate when re-entering upload from the builder,
+  // so the user's uploads aren't hidden behind an empty dropzone.
+  initialItems?: { file: File; url: string }[]
 }) {
-  const [uploadedItems, setUploadedItems] = useState<{ file: File; url: string }[]>([])
+  const [uploadedItems, setUploadedItems] = useState<{ file: File; url: string }[]>(initialItems ?? [])
   const [dragging,      setDragging]      = useState(false)
   const [dragReorderIdx, setDragReorderIdx] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -308,6 +312,11 @@ function UploadStep({
   }
 
   const removeFile = (index: number) => {
+    // Release the discarded file's object URL immediately rather than leaking it
+    // until the whole page unmounts. (It's also in sessionObjectUrlsRef; the
+    // unmount sweep double-revoke is a harmless no-op.)
+    const removed = uploadedItems[index]
+    if (removed) URL.revokeObjectURL(removed.url)
     setUploadedItems(prev => prev.filter((_, i) => i !== index))
   }
 
@@ -525,6 +534,13 @@ function ExportModal({
   const abortRef         = useRef<AbortController | null>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null) // wired to preview canvas in Task 4
   const previewRafRef    = useRef<number | null>(null)
+
+  // Release the exported blob URL when it's replaced or the modal closes — tied to
+  // the result's lifetime, not a wall-clock timer that used to kill the Save button
+  // after 60s while it was still on screen.
+  useEffect(() => {
+    return () => { if (animResult) URL.revokeObjectURL(animResult.url) }
+  }, [animResult])
   const animConfig: StoryAnimConfig = {
     formatId,
     themeIndex,
@@ -654,7 +670,8 @@ function ExportModal({
     a.click()
     document.body.removeChild(a)
     Events.storyAnimDownload(animResult.format)
-    setTimeout(() => URL.revokeObjectURL(animResult.url), 60_000)
+    // Revocation is handled by the animResult cleanup effect (on close/replace),
+    // so the Save button keeps working for as long as the modal is open.
   }
 
   const allFormats = Object.entries(SOCIAL_FORMATS)
@@ -1822,7 +1839,10 @@ export function StoryModePage() {
     saveWorkspaceToDB(ws, newAssetFiles).then(() => {
       for (const id of Object.keys(newAssetFiles)) savedAssetIdsRef.current.add(id)
     }).catch(err => console.warn('Workspace asset save failed', err))
-  }, [assets, step]) // eslint-disable-line react-hooks/exhaustive-deps
+    // slides/productContext/intent are included so a newly-ready asset is persisted
+    // alongside the *current* slide metadata, not a stale snapshot. savedAssetIdsRef
+    // guards against re-writing binary files, so the extra runs on text edits are cheap.
+  }, [assets, step, slides, productContext, intent])
 
   // Keep track of all object URLs created during the session to revoke them on unmount
   const sessionObjectUrlsRef = useRef<string[]>([])
@@ -1845,9 +1865,12 @@ export function StoryModePage() {
   useEffect(() => {
     if (step !== 'builder' || !intent || slides.length === 0 || sequenced) return
 
+    // A decode failure ('error') is terminal — treat it as "done" so one bad
+    // screenshot can't wedge the builder by leaving the gate permanently unmet.
+    // applyRoleDetection already skips non-ready assets, leaving their template role.
     const allReady = slides.every(slide => {
       const asset = assets[slide.assetId]
-      return asset && asset.status === 'ready'
+      return asset && (asset.status === 'ready' || asset.status === 'error')
     })
 
     if (allReady) {
@@ -2030,12 +2053,20 @@ export function StoryModePage() {
   }
 
   if (step === 'upload') {
+    // Rebuild the upload list from existing slides/assets (in current order) so
+    // returning to Upload from the builder shows the user's screenshots instead of
+    // an empty dropzone. handleContinue reuses these URLs, so no new leak on rebuild.
+    const uploadInitialItems = slides
+      .map(s => assets[s.assetId])
+      .filter((a): a is StoryAsset => !!a && !!a.file)
+      .map(a => ({ file: a.file, url: a.objectUrl }))
     return (
       <UploadStep
         intent={intent!}
         onBack={() => setStep('intent')}
         onContinue={handleContinue}
         createSessionObjectUrl={createSessionObjectUrl}
+        initialItems={uploadInitialItems}
       />
     )
   }

@@ -1,0 +1,23 @@
+<<<<<<< SEARCH
+export const THEMES = [
+  { name: 'Indigo',  bg: '#06080f', accent: '#818cf8', glow: 'rgba(99,102,241,0.42)',  glowMid: 'rgba(99,102,241,0.10)'  },
+  { name: 'Emerald', bg: '#030a06', accent: '#34d399', glow: 'rgba(16,185,129,0.38)',  glowMid: 'rgba(16,185,129,0.08)'  },
+  { name: 'Rose',    bg: '#0a0306', accent: '#fb7185', glow: 'rgba(244,63,94,0.38)',   glowMid: 'rgba(244,63,94,0.08)'   },
+  { name: 'Slate',   bg: '#060809', accent: '#94a3b8', glow: 'rgba(148,163,184,0.26)', glowMid: 'rgba(148,163,184,0.06)' },
+  { name: 'Amber',   bg: '#080600', accent: '#fcd34d', glow: 'rgba(251,191,36,0.38)',  glowMid: 'rgba(251,191,36,0.08)'  },
+  { name: 'Sky',     bg: '#02080d', accent: '#38bdf8', glow: 'rgba(56,189,248,0.38)',  glowMid: 'rgba(56,189,248,0.08)'  },
+] as const
+
+export type Theme = typeof THEMES[number]
+=======
+export const THEMES = [
+  { name: 'Indigo',  bg: '#06080f', accent: '#818cf8', glow: 'rgba(99,102,241,0.42)',  glowMid: 'rgba(99,102,241,0.10)'  },
+  { name: 'Emerald', bg: '#030a06', accent: '#34d399', glow: 'rgba(16,185,129,0.38)',  glowMid: 'rgba(16,185,129,0.08)'  },
+  { name: 'Rose',    bg: '#0a0306', accent: '#fb7185', glow: 'rgba(244,63,94,0.38)',   glowMid: 'rgba(244,63,94,0.08)'   },
+  { name: 'Slate',   bg: '#060809', accent: '#94a3b8', glow: 'rgba(148,163,184,0.26)', glowMid: 'rgba(148,163,184,0.06)' },
+  { name: 'Amber',   bg: '#080600', accent: '#fcd34d', glow: 'rgba(251,191,36,0.38)',  glowMid: 'rgba(251,191,36,0.08)'  },
+  { name: 'Sky',     bg: '#02080d', accent: '#38bdf8', glow: 'rgba(56,189,248,0.38)',  glowMid: 'rgba(56,189,248,0.08)'  },
+] as const
+
+export type Theme = { name: string; bg: string; accent: string; glow: string; glowMid: string }
+>>>>>>> REPLACE

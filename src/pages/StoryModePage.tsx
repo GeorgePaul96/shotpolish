@@ -19,6 +19,7 @@ import { saveBridgeToEditor, loadBridgeFromStory, loadReturnFromEditor, hasRetur
 import type { BridgeData, StorySessionSnapshot } from '../lib/compositionBridge'
 import type { ProductContext } from '../lib/contextEngine'
 import { saveWorkspaceToDB, loadWorkspaceFromDB, deleteWorkspaceFromDB, getLastActiveWorkspaceId, saveLastActiveWorkspaceId, clearLastActiveWorkspacePointer, type LaunchWorkspace } from '../lib/workspaceStore'
+import { useAuth } from '../components/AuthProvider'
 import {
   buildFrameSequence,
   renderStoryFrame,
@@ -105,7 +106,7 @@ function renderSlideOffscreen(
     },
   }
 
-  const theme = THEMES[themeIndex] ?? THEMES[0]
+  const theme = brandKit || (THEMES[themeIndex] ?? THEMES[0])
   renderComposition(ctx, img, theme, doc, L, 1.0)
   
   try {
@@ -1183,9 +1184,10 @@ function BuilderStep({
     const scale = canvasW / L.compW
 
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0)
-    renderComposition(ctx, img, theme, compositionDoc, L, 1.0)
+    const activeTheme = brandKit || (THEMES[themeIndex] ?? THEMES[0])
+    renderComposition(ctx, img, activeTheme, compositionDoc, L, 1.0)
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-  }, [activeAsset, compositionDoc, L, canvasW, canvasH, themeIndex])
+  }, [activeAsset, compositionDoc, L, canvasW, canvasH, themeIndex, brandKit])
 
   const updateSlide = useCallback((index: number, updates: Partial<StorySlide>) => {
     onUpdateSlides(prev => {
@@ -1730,6 +1732,7 @@ function applyRoleDetection(
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export function StoryModePage() {
+  const { brandKit } = useAuth()
   const [step,        setStep]        = useState<StoryStep>('intent')
   const [intent,      setIntent]      = useState<StoryIntent | null>(null)
   const [slides,      setSlides]      = useState<StorySlide[]>([])

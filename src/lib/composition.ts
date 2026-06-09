@@ -19,7 +19,7 @@ export const THEMES = [
   { name: 'Sky',     bg: '#02080d', accent: '#38bdf8', glow: 'rgba(56,189,248,0.38)',  glowMid: 'rgba(56,189,248,0.08)'  },
 ] as const
 
-export type Theme = typeof THEMES[number]
+export type Theme = { name: string; bg: string; accent: string; glow: string; glowMid: string; brandKit?: true; shadowOpacity?: number; padding?: number; borderRadius?: number; fontFamily?: string; }
 
 // ─── FRAME TYPES ─────────────────────────────────────────────────────────────
 export type FrameType = 'browser' | 'iphone' | 'android' | 'ipad' | 'none'

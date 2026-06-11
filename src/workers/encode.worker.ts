@@ -5,7 +5,7 @@ type InMsg =
   | { type: 'frame'; rgba: ArrayBuffer; width: number; height: number; delay: number; total: number }
   | { type: 'finish' }
 
-type OutMsg =
+export type OutMsg =
   | { type: 'progress'; written: number; total: number }
   | { type: 'done'; gif: ArrayBuffer }
   | { type: 'error'; message: string }

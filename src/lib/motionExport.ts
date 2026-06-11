@@ -1,6 +1,8 @@
 // Motion export pipeline — MP4 (H.264 where available), WebM fallback, GIF option.
 // All exports are async and non-blocking. Progress callbacks prevent UI freezing.
 
+import type { OutMsg } from '../workers/encode.worker'
+
 export type MotionFormat = 'mp4' | 'webm' | 'gif'
 
 export interface ExportResult {
@@ -110,6 +112,10 @@ export async function exportMotionGIF(
 
   const delay = Math.round((1000 / fps) * step)
 
+  // Idle watchdog: reject if the encoder goes silent (no progress) for this long,
+  // so a silently-dead worker can't leave the caller stuck in an exporting state.
+  const IDLE_TIMEOUT_MS = 30_000
+
   // Offscreen canvas for pixel extraction (must stay on the main thread —
   // the composition engine renders to a DOM canvas). Only the CPU-heavy
   // quantize/encode is offloaded to the worker.
@@ -122,17 +128,27 @@ export async function exportMotionGIF(
 
   try {
     const gifBytes = await new Promise<ArrayBuffer>((resolve, reject) => {
-      worker.onmessage = (e: MessageEvent) => {
+      let watchdog: ReturnType<typeof setTimeout>
+      const armWatchdog = () => {
+        clearTimeout(watchdog)
+        watchdog = setTimeout(() => reject(new Error('GIF encode timed out — the encoder stopped responding')), IDLE_TIMEOUT_MS)
+      }
+      armWatchdog()
+
+      worker.onmessage = (e: MessageEvent<OutMsg>) => {
         const msg = e.data
         if (msg.type === 'progress') {
+          armWatchdog()
           onProgress?.({ frame: msg.written, total: renderFramesCount, percent: Math.round((msg.written / renderFramesCount) * 100) })
         } else if (msg.type === 'done') {
-          resolve(msg.gif as ArrayBuffer)
+          clearTimeout(watchdog)
+          resolve(msg.gif)
         } else if (msg.type === 'error') {
+          clearTimeout(watchdog)
           reject(new Error(msg.message))
         }
       }
-      worker.onerror = () => reject(new Error('GIF encode worker error'))
+      worker.onerror = () => { clearTimeout(watchdog); reject(new Error('GIF encode worker error')) }
 
       ;(async () => {
         try {
@@ -157,6 +173,7 @@ export async function exportMotionGIF(
               { type: 'frame', rgba, width: w, height: h, delay, total: renderFramesCount },
               [rgba],
             )
+            armWatchdog()
 
             // Yield so frame rendering stays responsive.
             await new Promise(r => setTimeout(r, 0))

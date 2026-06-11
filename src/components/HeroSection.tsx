@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { setPendingUpload } from '../lib/pendingUpload'
 
 // Real before/after screenshots live in public/ and are served at the site root.
 // Replace these files to update the hero comparison.
@@ -63,7 +64,8 @@ const fadeUp = {
 export function HeroSection() {
   const navigate = useNavigate()
 
-  const handleFile = () => {
+  const handleFile = (file: File) => {
+    setPendingUpload(file)
     navigate('/editor')
   }
 

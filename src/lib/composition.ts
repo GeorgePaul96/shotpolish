@@ -131,6 +131,11 @@ export interface Rect {
   h: number
 }
 
+export interface RenderOptions {
+  /** Draw the ShotPolish watermark onto the canvas. Defaults to true. */
+  watermark?: boolean
+}
+
 export interface ComputedLayout {
   compW: number
   compH: number
@@ -804,6 +809,23 @@ function renderMultiCallouts(
 }
 
 // ─── RENDERING PIPELINE ───────────────────────────────────────────────────────
+export function drawWatermark(
+  ctx: CanvasRenderingContext2D,
+  watermark: Rect,
+  compW: number,
+  opts?: RenderOptions,
+) {
+  if (opts?.watermark === false) return
+  ctx.save()
+  const wms = Math.max(Math.round(compW * 0.012), 10)
+  ctx.font          = `500 ${wms}px 'Inter',system-ui,sans-serif`
+  ctx.textAlign     = 'right'
+  ctx.textBaseline  = 'bottom'
+  ctx.fillStyle     = 'rgba(255,255,255,0.26)'
+  ctx.fillText('ShotPolish', watermark.x, watermark.y + watermark.h)
+  ctx.restore()
+}
+
 export function renderComposition(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -811,6 +833,7 @@ export function renderComposition(
   doc: CompositionDocument,
   L: ComputedLayout,
   motionProgress: number = 1.0,
+  opts?: RenderOptions,
 ) {
   const { compW, compH, card, screenshot, headline: headL, watermark, cornerR, outerCornerR, deviceBody, frameType } = L
   const { shadowOpacity } = doc
@@ -1094,13 +1117,6 @@ export function renderComposition(
 
   ctx.restore() // end scale transform
 
-  // 10. Watermark
-  ctx.save()
-  const wms = Math.max(Math.round(compW * 0.012), 10)
-  ctx.font          = `500 ${wms}px 'Inter',system-ui,sans-serif`
-  ctx.textAlign     = 'right'
-  ctx.textBaseline  = 'bottom'
-  ctx.fillStyle     = 'rgba(255,255,255,0.26)'
-  ctx.fillText('ShotPolish', watermark.x, watermark.y + watermark.h)
-  ctx.restore()
+  // 10. Watermark (suppressed for entitled users via opts.watermark === false)
+  drawWatermark(ctx, watermark, compW, opts)
 }

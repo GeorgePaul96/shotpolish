@@ -1,7 +1,7 @@
 // Motion export pipeline — MP4 (H.264 where available), WebM fallback, GIF option.
 // All exports are async and non-blocking. Progress callbacks prevent UI freezing.
 
-import { GIFEncoder, quantize, applyPalette } from 'gifenc'
+import type { OutMsg } from '../workers/encode.worker'
 
 export type MotionFormat = 'mp4' | 'webm' | 'gif'
 
@@ -111,51 +111,85 @@ export async function exportMotionGIF(
   }
 
   const delay = Math.round((1000 / fps) * step)
-  const gif = GIFEncoder()
 
-  // Offscreen canvas for pixel extraction
+  // Idle watchdog: reject if the encoder goes silent (no progress) for this long,
+  // so a silently-dead worker can't leave the caller stuck in an exporting state.
+  const IDLE_TIMEOUT_MS = 30_000
+
+  // Offscreen canvas for pixel extraction (must stay on the main thread —
+  // the composition engine renders to a DOM canvas). Only the CPU-heavy
+  // quantize/encode is offloaded to the worker.
   const offscreen = document.createElement('canvas')
   offscreen.width  = w
   offscreen.height = h
   const ctx = offscreen.getContext('2d', { willReadFrequently: true })!
 
-  let writtenFrames = 0
-  for (let i = 0; i < totalFrames; i += step) {
-    if (signal?.aborted) break
+  const worker = new Worker(new URL('../workers/encode.worker.ts', import.meta.url), { type: 'module' })
 
-    const progress = i / totalFrames
-    const dataUrl = await exportFrame(progress)
-    if (!dataUrl) continue
-
-    // Draw data URL to offscreen canvas to get pixel data
-    await new Promise<void>(resolve => {
-      const img = new Image()
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, w, h)
-        resolve()
+  try {
+    const gifBytes = await new Promise<ArrayBuffer>((resolve, reject) => {
+      let watchdog: ReturnType<typeof setTimeout>
+      const armWatchdog = () => {
+        clearTimeout(watchdog)
+        watchdog = setTimeout(() => reject(new Error('GIF encode timed out — the encoder stopped responding')), IDLE_TIMEOUT_MS)
       }
-      img.src = dataUrl
+      armWatchdog()
+
+      worker.onmessage = (e: MessageEvent<OutMsg>) => {
+        const msg = e.data
+        if (msg.type === 'progress') {
+          armWatchdog()
+          onProgress?.({ frame: msg.written, total: renderFramesCount, percent: Math.round((msg.written / renderFramesCount) * 100) })
+        } else if (msg.type === 'done') {
+          clearTimeout(watchdog)
+          resolve(msg.gif)
+        } else if (msg.type === 'error') {
+          clearTimeout(watchdog)
+          reject(new Error(msg.message))
+        }
+      }
+      worker.onerror = () => { clearTimeout(watchdog); reject(new Error('GIF encode worker error')) }
+
+      ;(async () => {
+        try {
+          for (let i = 0; i < totalFrames; i += step) {
+            if (signal?.aborted) break
+
+            const progress = i / totalFrames
+            const dataUrl = await exportFrame(progress)
+            if (!dataUrl) continue
+
+            await new Promise<void>((res, rej) => {
+              const img = new Image()
+              img.onload = () => { ctx.drawImage(img, 0, 0, w, h); res() }
+              img.onerror = () => rej(new Error('Frame image decode failed'))
+              img.src = dataUrl
+            })
+
+            const { data } = ctx.getImageData(0, 0, w, h)
+            // Transfer the pixel buffer to the worker (zero-copy).
+            const rgba = new Uint8ClampedArray(data).buffer
+            worker.postMessage(
+              { type: 'frame', rgba, width: w, height: h, delay, total: renderFramesCount },
+              [rgba],
+            )
+            armWatchdog()
+
+            // Yield so frame rendering stays responsive.
+            await new Promise(r => setTimeout(r, 0))
+          }
+          worker.postMessage({ type: 'finish' })
+        } catch (err) {
+          reject(err instanceof Error ? err : new Error(String(err)))
+        }
+      })()
     })
 
-    const { data } = ctx.getImageData(0, 0, w, h)
-    const rgba = new Uint8ClampedArray(data)
-
-    const palette = quantize(rgba, 256)
-    const index = applyPalette(rgba, palette)
-    gif.writeFrame(index, w, h, { palette, delay })
-    
-    writtenFrames++
-
-    onProgress?.({ frame: writtenFrames, total: renderFramesCount, percent: Math.round((writtenFrames / renderFramesCount) * 100) })
-
-    // Yield to browser event loop every 4 frames to avoid UI freeze
-    if (writtenFrames % 4 === 3) await new Promise(r => setTimeout(r, 0))
+    const blob = new Blob([gifBytes], { type: 'image/gif' })
+    return { blob, format: 'gif', url: URL.createObjectURL(blob) }
+  } finally {
+    worker.terminate()
   }
-
-  gif.finish()
-  const buffer = gif.bytesView()
-  const blob = new Blob([buffer], { type: 'image/gif' })
-  return { blob, format: 'gif', url: URL.createObjectURL(blob) }
 }
 
 // ─── PLATFORM COMPATIBILITY LABELS ───────────────────────────────────────────

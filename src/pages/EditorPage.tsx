@@ -14,6 +14,7 @@ import { TEMPLATES, TEMPLATE_CATEGORIES, Template } from '../lib/templates'
 import { AI_SUGGESTIONS } from '../lib/aiSuggestions'
 import { Events, track } from '../lib/analytics'
 import { loadBridgeFromStory, saveReturnToStory, type BridgeSlideData } from '../lib/compositionBridge'
+import { consumePendingUpload } from '../lib/pendingUpload'
 import { getSupportedVideoMimeType, exportMotionGIF as libExportMotionGIF, type ExportProgress } from '../lib/motionExport'
 
 function suggestFrameType(w: number, h: number): FrameType | null {
@@ -775,6 +776,13 @@ export function EditorPage() {
   }, [imageUrl])
 
   useEffect(() => () => { if (imageUrl) URL.revokeObjectURL(imageUrl) }, [imageUrl])
+
+  // Consume a file handed off from the landing hero (one-time, cleared on read).
+  useEffect(() => {
+    const file = consumePendingUpload()
+    if (file) handleFile(file)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Close export dropdown on outside click ───────────────────────────────────
   useEffect(() => {

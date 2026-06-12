@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
   try {
     event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret)
   } catch (err) {
+    console.error('stripe-webhook signature verification failed', { error: (err as Error).message })
     return new Response(`Invalid signature: ${(err as Error).message}`, { status: 400 })
   }
 
@@ -42,12 +43,18 @@ Deno.serve(async (req) => {
   if (update.stripeCustomerId) patch.stripe_customer_id = update.stripeCustomerId
   if (update.planRenewsAt !== undefined) patch.plan_renews_at = update.planRenewsAt
 
-  // LTD: assign the next founders-wall seat if not already set.
-  if (update.plan === 'ltd') {
-    const { data: top } = await supabase
-      .from('profiles').select('ltd_seat').not('ltd_seat', 'is', null)
-      .order('ltd_seat', { ascending: false }).limit(1).maybeSingle()
-    patch.ltd_seat = ((top?.ltd_seat as number | null) ?? 0) + 1
+  // LTD: assign the next founders-wall seat ONLY if this profile has none yet,
+  // so a reprocessed/retried checkout doesn't burn a new seat. (A fully
+  // race-safe assignment needs a DB sequence/UNIQUE constraint — deferred.)
+  if (update.plan === 'ltd' && update.userId) {
+    const { data: me } = await supabase
+      .from('profiles').select('ltd_seat').eq('id', update.userId).maybeSingle()
+    if (me?.ltd_seat == null) {
+      const { data: top } = await supabase
+        .from('profiles').select('ltd_seat').not('ltd_seat', 'is', null)
+        .order('ltd_seat', { ascending: false }).limit(1).maybeSingle()
+      patch.ltd_seat = ((top?.ltd_seat as number | null) ?? 0) + 1
+    }
   }
 
   const query = update.userId
@@ -56,6 +63,12 @@ Deno.serve(async (req) => {
 
   const { error: updateError } = await query
   if (updateError) {
+    // Roll back the idempotency marker so Stripe's retry reprocesses this event
+    // instead of being short-circuited as a duplicate (which would strand a
+    // paying customer on the free plan). Plan writes are idempotent; the LTD
+    // seat assignment below is guarded by a null-check so reprocessing is safe.
+    await supabase.from('stripe_events').delete().eq('id', event.id)
+    console.error('stripe-webhook update failed', { eventId: event.id, type: event.type, error: updateError.message })
     return new Response(`DB update failed: ${updateError.message}`, { status: 500 })
   }
 

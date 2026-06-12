@@ -27,6 +27,11 @@ describe('mapStripeEvent', () => {
     expect(mapStripeEvent(e)).toBeNull()
   })
 
+  it('checkout without a customer still maps (no stripeCustomerId)', () => {
+    const e = checkout({ customer: undefined })
+    expect(mapStripeEvent(e)).toEqual({ userId: 'user-123', plan: 'pro' })
+  })
+
   it('customer.subscription.updated maps customer to pro with renewal date', () => {
     const e: StripeEventLike = {
       id: 'evt_2', type: 'customer.subscription.updated',

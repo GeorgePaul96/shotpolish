@@ -1,6 +1,8 @@
 // Pure Stripe-event → profile-update mapping. No SDK import so it runs under
 // vitest. The Deno webhook shell verifies the signature then delegates here.
 
+// NOTE: kept identical to `Plan` in src/lib/entitlements.ts. The two live in
+// separate bundles (Deno edge vs Vite client) and can't share an import.
 export type Plan = 'free' | 'pro' | 'ltd'
 
 export interface StripeEventLike {

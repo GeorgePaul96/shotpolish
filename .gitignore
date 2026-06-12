@@ -37,3 +37,5 @@ CLAUDE.md
 *.mp4
 *.gif
 bundle-stats.html
+.gstack/
+

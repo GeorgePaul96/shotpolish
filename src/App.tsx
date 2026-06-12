@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { EditorPage } from './pages/EditorPage'
 import { StoryModePage } from './pages/StoryModePage'
 import { BrandKitPage } from './pages/BrandKitPage'
+import { PricingPage } from './pages/PricingPage'
 import { LegalPages } from './components/LegalPages'
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/editor" element={<EditorPage />} />
         <Route path="/story" element={<StoryModePage />} />
         <Route path="/settings/brand" element={<BrandKitPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/privacy" element={<><Navbar /><LegalPages page="privacy" /></>} />
         <Route path="/terms" element={<><Navbar /><LegalPages page="terms" /></>} />
       </Routes>

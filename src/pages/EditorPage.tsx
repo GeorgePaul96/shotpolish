@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCompositionCanvas } from '../hooks/useCompositionCanvas'
+import { useEntitlement } from '../hooks/useEntitlement'
 import {
   THEMES,
   computeLayout,
@@ -764,7 +765,8 @@ export function EditorPage() {
     return Math.min(scaleX, scaleY)
   }, [L, viewportSize])
 
-  const { isRendering, exportImage } = useCompositionCanvas(compositionDoc, canvasRef, motionProgress)
+  const { isPro } = useEntitlement()
+  const { isRendering, exportImage } = useCompositionCanvas(compositionDoc, canvasRef, motionProgress, !isPro)
   const theme = THEMES[themeIndex] ?? THEMES[0]
 
   // ── File handling ────────────────────────────────────────────────────────────

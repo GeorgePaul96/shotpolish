@@ -11,7 +11,8 @@ import {
 export function useCompositionCanvas(
   doc: CompositionDocument,
   canvasRef: RefObject<HTMLCanvasElement>,
-  motionProgress: number = 1.0 // Optional reveal animation timeline progress (0.0 to 1.0)
+  motionProgress: number = 1.0, // Optional reveal animation timeline progress (0.0 to 1.0)
+  watermark: boolean = true     // false for entitled (Pro/LTD) users — drops the canvas watermark
 ) {
   const [isRendering, setIsRendering] = useState(false)
   const imgRef = useRef<HTMLImageElement | null>(null)
@@ -22,6 +23,9 @@ export function useCompositionCanvas(
 
   const progressRef = useRef(motionProgress)
   progressRef.current = motionProgress
+
+  const watermarkRef = useRef(watermark)
+  watermarkRef.current = watermark
 
   // ── paint: draws the scene graph onto the canvas ──────────────────────────
   const paint = useCallback(() => {
@@ -68,7 +72,7 @@ export function useCompositionCanvas(
 
     // Unified coordinate transform scaling (comp space -> screen device pixels)
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0)
-    renderComposition(ctx, img, theme, currentDoc, L, progressRef.current)
+    renderComposition(ctx, img, theme, currentDoc, L, progressRef.current, { watermark: watermarkRef.current })
     ctx.setTransform(1, 0, 0, 1, 0, 0)
   }, [canvasRef])
 
@@ -102,7 +106,7 @@ export function useCompositionCanvas(
   // ── repaint on any document structure mutations or progress steps ─────────
   useEffect(() => {
     if (imgRef.current) schedule()
-  }, [doc, motionProgress, schedule])
+  }, [doc, motionProgress, watermark, schedule])
 
   // ── resize observer tracking ──────────────────────────────────────────────
   useEffect(() => {
@@ -145,7 +149,7 @@ export function useCompositionCanvas(
     if (!ctx) return null
     
     const activeProgress = overrideProgress !== undefined ? overrideProgress : progressRef.current
-    renderComposition(ctx, img, theme, docCopy, L, activeProgress)
+    renderComposition(ctx, img, theme, docCopy, L, activeProgress, { watermark: watermarkRef.current })
     try {
       return off.toDataURL('image/png')
     } catch {

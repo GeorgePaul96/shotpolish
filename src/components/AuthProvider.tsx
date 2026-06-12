@@ -2,20 +2,23 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { initDB, WORKSPACE_STORE, ASSET_STORE, type LaunchWorkspace, saveWorkspaceToDB } from '../lib/workspaceStore'
+import type { Plan } from '../lib/entitlements'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  plan: Plan
   brandKit: any | null
   signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true, brandKit: null, signOut: async () => {} })
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, plan: 'free', brandKit: null, signOut: async () => {} })
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [brandKit, setBrandKit] = useState<any | null>(null)
+  const [plan, setPlan] = useState<Plan>('free')
 
   const migrateLocalToCloud = async (user: User) => {
     try {
@@ -111,6 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    const fetchPlan = async (uid: string) => {
+      const { data } = await supabase.from('profiles').select('plan').eq('id', uid).single()
+      const p = data?.plan
+      setPlan(p === 'pro' || p === 'ltd' ? p : 'free')
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       const activeUser = session?.user ?? null
       setUser(activeUser)
@@ -118,8 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (activeUser) {
         migrateLocalToCloud(activeUser)
         fetchBrandKit(activeUser.id)
+        fetchPlan(activeUser.id)
       } else {
         setBrandKit(null)
+        setPlan('free')
       }
     })
 
@@ -130,8 +141,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (activeUser) {
         migrateLocalToCloud(activeUser)
         fetchBrandKit(activeUser.id)
+        fetchPlan(activeUser.id)
       } else {
         setBrandKit(null)
+        setPlan('free')
       }
     })
 
@@ -143,7 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, brandKit, signOut }}>
+    <AuthContext.Provider value={{ user, loading, plan, brandKit, signOut }}>
       {children}
     </AuthContext.Provider>
   )

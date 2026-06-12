@@ -6,6 +6,12 @@ CREATE TABLE profiles (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- M0 billing columns (also applied via migrations/0001_profiles_plan.sql)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'free';      -- free | pro | ltd
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan_renews_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ltd_seat INT;
+
 -- Enable RLS for profiles
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can read own profile" ON profiles FOR SELECT USING (auth.uid() = id);
@@ -56,3 +62,10 @@ CREATE TABLE brand_kits (
 -- Enable RLS for brand_kits
 ALTER TABLE brand_kits ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own brand kits" ON brand_kits FOR ALL USING (auth.uid() = user_id);
+
+-- Stripe webhook idempotency (written only by the service-role webhook).
+CREATE TABLE IF NOT EXISTS stripe_events (
+  id TEXT PRIMARY KEY,
+  type TEXT,
+  processed_at TIMESTAMPTZ DEFAULT NOW()
+);

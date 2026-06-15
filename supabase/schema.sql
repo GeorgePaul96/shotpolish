@@ -1,6 +1,6 @@
 -- Profiles (Tied to Supabase Auth)
 CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT NOT NULL,
   full_name TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()

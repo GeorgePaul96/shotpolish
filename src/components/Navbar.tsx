@@ -58,12 +58,20 @@ export function Navbar() {
             {/* CTA */}
             <div className="flex items-center gap-2">
               {user ? (
-                <button
-                  onClick={signOut}
-                  className="px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100"
-                >
-                  Log out
-                </button>
+                <>
+                  <Link
+                    to="/account"
+                    className="px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100"
+                  >
+                    Account
+                  </Link>
+                  <button
+                    onClick={signOut}
+                    className="px-3 py-1.5 text-sm text-[#6B7280] hover:text-[#111827] transition-colors duration-150 rounded-lg hover:bg-gray-100"
+                  >
+                    Log out
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => setAuthModalOpen(true)}

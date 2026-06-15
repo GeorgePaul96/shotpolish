@@ -5,6 +5,7 @@ import { EditorPage } from './pages/EditorPage'
 import { StoryModePage } from './pages/StoryModePage'
 import { BrandKitPage } from './pages/BrandKitPage'
 import { PricingPage } from './pages/PricingPage'
+import { AccountPage } from './pages/AccountPage'
 import { LegalPages } from './components/LegalPages'
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/story" element={<StoryModePage />} />
         <Route path="/settings/brand" element={<BrandKitPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route path="/privacy" element={<><Navbar /><LegalPages page="privacy" /></>} />
         <Route path="/terms" element={<><Navbar /><LegalPages page="terms" /></>} />
       </Routes>

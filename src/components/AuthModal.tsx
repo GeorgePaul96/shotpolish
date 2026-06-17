@@ -12,7 +12,10 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     e.preventDefault()
     setLoading(true)
     setMessage('')
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    })
     if (error) setMessage(error.message)
     else setMessage('Check your email for the magic link!')
     setLoading(false)
@@ -20,7 +23,10 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   const handleGoogleAuth = async () => {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
     if (error) setMessage(error.message)
     setLoading(false)
   }

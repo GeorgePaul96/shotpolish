@@ -17,7 +17,10 @@ Canonical source: `supabase/schema.sql`. Applied incrementally via
 | ltd_seat | int | founders-wall seat (assigned once) |
 | created_at | timestamptz default now() | |
 
-RLS: SELECT/UPDATE only where `auth.uid() = id`.
+RLS: SELECT/UPDATE only where `auth.uid() = id`. **Column privileges (0003):**
+clients may UPDATE only `full_name`; `plan` / `stripe_customer_id` /
+`plan_renews_at` / `ltd_seat` are writable solely by the service-role webhook —
+this prevents a user from self-assigning a paid plan.
 Trigger: `handle_new_user()` (SECURITY DEFINER) inserts a profile AFTER INSERT
 on `auth.users`.
 
@@ -66,6 +69,14 @@ Delete `auth.users` row → `profiles` (CASCADE, via 0002) → `workspaces` +
 |------|--------|
 | `0001_profiles_plan.sql` | Add plan/stripe columns to profiles; create stripe_events. |
 | `0002_profiles_cascade.sql` | Replace profiles_id_fkey with ON DELETE CASCADE (deletion was previously blocked). |
+| `0003_profiles_lock_billing_columns.sql` | Revoke client UPDATE on billing columns; grant only `full_name` (closes plan self-upgrade). |
+| `0004_storage_assets_policies.sql` | Make the `assets` Storage bucket private + owner-scoped CRUD policies. |
+
+## Storage
+Bucket `assets` (private). User screenshots live at `assets/{user_id}/{ws_id}/{asset_id}`
+(written by `workspaceStore.ts`). Policies (0004) scope every operation to the
+owner via `(storage.foldername(name))[1] = auth.uid()`. `delete-account` purges
+the user's `assets/{user_id}/` tree on account deletion (Storage doesn't cascade).
 
 ## Access patterns (where queried)
 - `AuthProvider.tsx` — `profiles.plan`, first `brand_kits` row.

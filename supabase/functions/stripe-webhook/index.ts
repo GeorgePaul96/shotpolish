@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret)
   } catch (err) {
     console.error('stripe-webhook signature verification failed', { error: (err as Error).message })
-    return new Response(`Invalid signature: ${(err as Error).message}`, { status: 400 })
+    return new Response('Invalid signature', { status: 400 })
   }
 
   // Idempotency: record the event id; a duplicate insert means already processed.
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     // seat assignment below is guarded by a null-check so reprocessing is safe.
     await supabase.from('stripe_events').delete().eq('id', event.id)
     console.error('stripe-webhook update failed', { eventId: event.id, type: event.type, error: updateError.message })
-    return new Response(`DB update failed: ${updateError.message}`, { status: 500 })
+    return new Response('Update failed', { status: 500 })
   }
 
   return new Response(JSON.stringify({ received: true }), { status: 200 })

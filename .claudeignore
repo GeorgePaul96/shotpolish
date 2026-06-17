@@ -1,0 +1,43 @@
+# .claudeignore — paths an AI agent should never read in this repo.
+#
+# NOTE ON EFFECTIVENESS: Claude Code's search/read tools already honor
+# .gitignore, and the strongest enforcement is `permissions.deny` in
+# .claude/settings.json. This file documents intent and is forward-compatible;
+# the patterns below are also mirrored in .gitignore / settings where it counts.
+# It is NOT a guaranteed hard block on its own — treat it as guidance.
+
+# Dependencies (163 MB) — never read source here
+node_modules/
+
+# Build / generated output
+dist/
+build/
+bundle-stats.html
+
+# Lockfiles — huge, no architectural signal
+package-lock.json
+
+# Binary / media assets — cost tokens, give no code signal
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webm
+*.mp4
+public/
+
+# Tooling / scratch artifacts (not product code)
+.superpowers/
+.gstack/
+.vscode/
+*.patch
+*.pid
+
+# Historical planning docs — read only for archaeology, not normal tasks
+docs/superpowers/
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log

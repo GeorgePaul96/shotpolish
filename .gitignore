@@ -25,8 +25,14 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Claude / AI notes
-CLAUDE.md
+# CLAUDE.md is intentionally tracked — it is the shared AI-agent orientation file.
 .claude/
+
+# scratch / tooling artifacts (should never be committed)
+.superpowers/
+*.pid
+*.patch
+
 # cache
 .cache
 .parcel-cache

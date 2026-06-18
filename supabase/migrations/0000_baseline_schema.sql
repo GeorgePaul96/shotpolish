@@ -1,3 +1,13 @@
+-- Baseline migration: creates the initial schema for a fresh database.
+-- Promoted from supabase/schema.sql, which was previously applied by hand and
+-- never tracked as a migration (so 0001+ had no base tables to ALTER on a new
+-- project). This file is the canonical first step; keep it in sync with
+-- schema.sql. Safe to run once on an empty database.
+
+-- UUID defaults use gen_random_uuid() (Postgres core, in pg_catalog) rather than
+-- uuid_generate_v4() (uuid-ossp, lives in the `extensions` schema which is not on
+-- the search_path during `supabase db push` -> "function does not exist").
+
 -- Profiles (Tied to Supabase Auth)
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,

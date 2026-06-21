@@ -16,6 +16,7 @@ import { AI_SUGGESTIONS } from '../lib/aiSuggestions'
 import { Events, track } from '../lib/analytics'
 import { loadBridgeFromStory, saveReturnToStory, type BridgeSlideData } from '../lib/compositionBridge'
 import { consumePendingUpload } from '../lib/pendingUpload'
+import { buildRemixUrl } from '../lib/remix'
 import { getSupportedVideoMimeType, exportMotionGIF as libExportMotionGIF, type ExportProgress } from '../lib/motionExport'
 
 function suggestFrameType(w: number, h: number): FrameType | null {
@@ -700,6 +701,22 @@ export function EditorPage() {
     window.history.replaceState({}, '', '/editor')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Remix landing — arriving from a shared watermark link (/r/:id -> /editor?remix=<id>).
+  // Pre-apply the shared template and drop in a sample screenshot so the canvas is
+  // alive immediately, then clean the URL. This closes the remix viral loop.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const remixId = params.get('remix')
+    if (!remixId) return
+    const t = TEMPLATES.find(x => x.id === remixId)
+    if (t) {
+      applyTemplate(t)
+      setImageUrl(prev => prev || '/hero-before.png')
+      Events.remixLanded(t.id)
+    }
+    window.history.replaceState({}, '', '/editor')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Track viewport container dimensions reactively
   useEffect(() => {
     const el = viewportRef.current
@@ -766,7 +783,7 @@ export function EditorPage() {
   }, [L, viewportSize])
 
   const { isPro } = useEntitlement()
-  const { isRendering, exportImage } = useCompositionCanvas(compositionDoc, canvasRef, motionProgress, !isPro)
+  const { isRendering, exportImage } = useCompositionCanvas(compositionDoc, canvasRef, motionProgress, !isPro, buildRemixUrl(activeTemplate))
   const theme = THEMES[themeIndex] ?? THEMES[0]
 
   // ── File handling ────────────────────────────────────────────────────────────

@@ -40,6 +40,7 @@ verified tokens/signatures inside edge functions.
 **Client (Vite, `import.meta.env`)** — public, shipped in bundle:
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (dummy fallback in `lib/supabase.ts`)
 - `VITE_STRIPE_PORTAL_URL` (customer portal link)
+- `VITE_PUBLIC_URL` (production origin baked into the watermark remix link; falls back to `https://shotpolish.app` — see `src/lib/remix.ts`)
 - `DEV` (Vite built-in)
 
 **Edge functions (Deno, `Deno.env`)** — secret, never in client:

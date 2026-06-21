@@ -49,6 +49,9 @@ export const Events = {
   signupInterestShown: ()                              => track('signup_interest_shown'),
   pricingInterestShown:()                              => track('pricing_interest_shown'),
 
+  // Remix viral loop
+  remixLanded:         (templateId: string)            => track('remix_landed',    { templateId }),
+
   // Errors
   renderError:         (message: string)               => track('render_error',     { message }),
   uploadError:         (message: string)               => track('upload_error',     { message }),

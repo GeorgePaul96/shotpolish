@@ -14,7 +14,8 @@ are approximate (token-cost signal). Read large files by range, not whole.
 
 ## Routes (src/App.tsx)
 `/` Home · `/editor` · `/story` · `/settings/brand` · `/pricing` · `/account`
-· `/privacy` · `/terms`
+· `/privacy` · `/terms` · `/r/:id` + `/remix/:id` (remix-loop entry → redirects to
+`/editor?remix=<id>`, which pre-applies that template)
 
 ## Pages (`src/pages/`)
 | File | ~LOC | Purpose |
@@ -61,6 +62,7 @@ are approximate (token-cost signal). Read large files by range, not whole.
 | `analytics.ts` | 61 | Lightweight analytics events. |
 | `pendingUpload.ts` | — | Carries a dropped File from landing into the editor. |
 | `entitlements.ts` | 27 | **Pure** plan→feature mapping (source of truth, client side). |
+| `remix.ts` | — | **Pure** remix-loop URL helpers (watermark badge link + `/r/:id` path). |
 | `account.ts` | — | `isDeleteConfirmed`, `accountPlanView`, `deleteAccount` call. |
 | `gifEncoder.ts` | — | gifenc wrapper used by the worker. |
 | `supabase.ts` | 6 | Supabase client (dummy fallback when env unset). |

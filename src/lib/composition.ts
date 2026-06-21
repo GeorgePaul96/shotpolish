@@ -134,6 +134,13 @@ export interface Rect {
 export interface RenderOptions {
   /** Draw the ShotPolish watermark onto the canvas. Defaults to true. */
   watermark?: boolean
+  /**
+   * Short, human-readable link baked into the watermark badge (e.g.
+   * "shotpolish.app/r/launch-indigo"). Drives the remix viral loop: a viewer
+   * of a posted asset can type/scan it to remix that exact style. Ignored when
+   * watermark is false. See src/lib/remix.ts.
+   */
+  remixUrl?: string
 }
 
 export interface ComputedLayout {
@@ -813,16 +820,71 @@ export function drawWatermark(
   ctx: CanvasRenderingContext2D,
   watermark: Rect,
   compW: number,
+  compH: number,
   opts?: RenderOptions,
 ) {
   if (opts?.watermark === false) return
+
+  const brand = 'Made with ShotPolish'
+  const url   = opts?.remixUrl // e.g. "shotpolish.app/r/launch-indigo"
+
   ctx.save()
-  const wms = Math.max(Math.round(compW * 0.012), 10)
-  ctx.font          = `500 ${wms}px 'Inter',system-ui,sans-serif`
-  ctx.textAlign     = 'right'
-  ctx.textBaseline  = 'bottom'
-  ctx.fillStyle     = 'rgba(255,255,255,0.26)'
-  ctx.fillText('ShotPolish', watermark.x, watermark.y + watermark.h)
+
+  // Scale everything off the composition width so the badge reads the same on
+  // a 1200px tweet card or a 2160px story.
+  const unit   = Math.max(Math.round(compW * 0.011), 11)
+  const padX   = Math.round(unit * 0.85)
+  const padY   = Math.round(unit * 0.6)
+  const lineGap = Math.round(unit * 0.35)
+  const margin = Math.max(Math.round(compW * 0.014), 12)
+
+  const brandFont = `600 ${unit}px 'Inter',system-ui,sans-serif`
+  const urlFont   = `500 ${Math.round(unit * 0.84)}px 'Inter',system-ui,sans-serif`
+
+  // Measure to size the pill.
+  ctx.font = brandFont
+  const brandW = ctx.measureText(brand).width
+  let urlW = 0
+  if (url) { ctx.font = urlFont; urlW = ctx.measureText(url).width }
+
+  const textW  = Math.max(brandW, urlW)
+  const brandH = unit
+  const urlH   = url ? Math.round(unit * 0.84) : 0
+  const textH  = brandH + (url ? lineGap + urlH : 0)
+
+  const boxW = Math.round(textW + padX * 2)
+  const boxH = Math.round(textH + padY * 2)
+  const right  = compW - margin
+  const bottom = compH - margin
+  const left   = right - boxW
+  const top    = bottom - boxH
+  const radius = Math.round(boxH * 0.28)
+
+  // Subtle translucent pill so the mark stays legible over any screenshot.
+  ctx.fillStyle = 'rgba(15,17,26,0.42)'
+  if (typeof (ctx as any).roundRect === 'function') {
+    ctx.beginPath()
+    ;(ctx as any).roundRect(left, top, boxW, boxH, radius)
+    ctx.fill()
+  } else {
+    ctx.fillRect(left, top, boxW, boxH)
+  }
+
+  // Text, right-aligned inside the pill.
+  ctx.textAlign    = 'right'
+  ctx.textBaseline = 'top'
+  const textRight  = right - padX
+
+  ctx.font      = brandFont
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'
+  ctx.fillText(brand, textRight, top + padY)
+
+  if (url) {
+    ctx.font      = urlFont
+    ctx.fillStyle = 'rgba(255,255,255,0.62)'
+    ctx.fillText(url, textRight, top + padY + brandH + lineGap)
+  }
+
   ctx.restore()
 }
 
@@ -1118,5 +1180,5 @@ export function renderComposition(
   ctx.restore() // end scale transform
 
   // 10. Watermark (suppressed for entitled users via opts.watermark === false)
-  drawWatermark(ctx, watermark, compW, opts)
+  drawWatermark(ctx, watermark, compW, compH, opts)
 }

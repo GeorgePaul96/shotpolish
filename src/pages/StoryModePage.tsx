@@ -72,6 +72,7 @@ function renderSlideOffscreen(
   padding: number,
   shadowOpacity: number,
   frameType: FrameType,
+  brandKit: any = null,
 ): string | null {
   const asset = assets[slide.assetId]
   if (!asset || asset.status !== 'ready' || !asset.decodedImage) return null
@@ -526,6 +527,7 @@ function ExportModal({
   formatId: string
   onClose: () => void
 }) {
+  const { brandKit } = useAuth() // null unless a signed-in user has a brand kit
   const [selected, setSelected] = useState<Set<string>>(new Set(intent.formats))
   const [status, setStatus]  = useState<'idle' | 'exporting' | 'done'>('idle')
   const [progress, setProgress] = useState({ slide: 0, format: 0 })
@@ -586,7 +588,7 @@ function ExportModal({
       let fmtDone = 0
       for (const fmt of formats) {
         setProgress({ slide: slidesDone + 1, format: fmtDone + 1 })
-        const result = renderSlideOffscreen(slide, assets, fmt, themeIndex, padding, shadowOpacity, frameType)
+        const result = renderSlideOffscreen(slide, assets, fmt, themeIndex, padding, shadowOpacity, frameType, brandKit)
         if (result) {
           const intentSlug = intent.id
           const slideNum   = String(slidesDone + 1).padStart(2, '0')
@@ -1083,6 +1085,7 @@ function BuilderStep({
   productContext: ProductContext | null
 }) {
   const navigate = useNavigate()
+  const { brandKit } = useAuth() // null unless a signed-in user has a brand kit
   const [activeIndex,    setActiveIndex]    = useState(0)
   const [themeIndex,     setThemeIndex]     = useState(0)
   const [formatId,       setFormatId]       = useState(intent.formats[0] ?? 'twitter-post')

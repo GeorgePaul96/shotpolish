@@ -4,10 +4,12 @@
 // the viral loop. Pure helpers so they can be unit-tested and reused by both the
 // canvas badge (display URL) and the router (internal path).
 
-// Production host. Override per-env with VITE_PUBLIC_URL (e.g. https://shotpolish.app).
-const RAW_BASE = (import.meta.env.VITE_PUBLIC_URL as string | undefined) || 'https://shotpolish.app'
+// Production host. Defaults to the real domain so the watermark/remix link is
+// correct even when VITE_PUBLIC_URL is unset in the deploy env (which it is in
+// prod today). Override per-env only if the domain changes.
+const RAW_BASE = (import.meta.env.VITE_PUBLIC_URL as string | undefined) || 'https://shotpolish.org'
 
-/** Bare host (no protocol, no trailing slash) — e.g. "shotpolish.app". */
+/** Bare host (no protocol, no trailing slash) — e.g. "shotpolish.org". */
 export function remixHost(): string {
   return RAW_BASE.replace(/^https?:\/\//, '').replace(/\/+$/, '')
 }

@@ -861,7 +861,7 @@ export function drawWatermark(
   const radius = Math.round(boxH * 0.28)
 
   // Subtle translucent pill so the mark stays legible over any screenshot.
-  ctx.fillStyle = 'rgba(15,17,26,0.42)'
+  ctx.fillStyle = 'rgba(15,17,26,0.55)'
   if (typeof (ctx as any).roundRect === 'function') {
     ctx.beginPath()
     ;(ctx as any).roundRect(left, top, boxW, boxH, radius)

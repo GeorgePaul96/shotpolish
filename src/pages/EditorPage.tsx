@@ -264,6 +264,8 @@ function ExportMenu({
     setExporting('current')
     track('export_completed')
     Events.exportCompleted(intent, theme.name)
+    const remixId = sessionStorage.getItem('sp_remix')
+    if (remixId) Events.remixExported(remixId)
     const result = await exportImage()
     const fmtLabel = currentFormatId !== 'free' ? (SOCIAL_FORMATS[currentFormatId]?.platform ?? currentFormatId) : 'PNG'
     if (result) download(result, `shotpolish-${intent.replace(/\s+/g,'-').toLowerCase()}.png`)
@@ -713,6 +715,7 @@ export function EditorPage() {
       applyTemplate(t)
       setImageUrl(prev => prev || '/hero-before.png')
       Events.remixLanded(t.id)
+      sessionStorage.setItem('sp_remix', t.id)
     }
     window.history.replaceState({}, '', '/editor')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps

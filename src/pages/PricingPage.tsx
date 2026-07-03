@@ -1,5 +1,6 @@
 import { useAuth } from '../components/AuthProvider'
 import { Navbar } from '../components/Navbar'
+import { Events } from '../lib/analytics'
 
 interface Tier {
   id: 'monthly' | 'annual' | 'ltd'
@@ -64,7 +65,7 @@ export function PricingPage() {
                 {!user ? (
                   <a href="/" className="btn-ghost mt-5 px-4 py-2 text-center text-sm">Sign in to upgrade</a>
                 ) : configured ? (
-                  <a href={url!} className="btn-primary mt-5 px-4 py-2 text-center text-sm">Choose {tier.name}</a>
+                  <a href={url!} onClick={() => Events.pricingTierClicked(tier.id)} className="btn-primary mt-5 px-4 py-2 text-center text-sm">Choose {tier.name}</a>
                 ) : (
                   <button disabled className="mt-5 cursor-not-allowed rounded-xl bg-[#F0F1F4] px-4 py-2 text-center text-sm text-[#9CA3AF]">
                     Billing not configured yet

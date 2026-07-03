@@ -50,7 +50,11 @@ export const Events = {
   pricingInterestShown:()                              => track('pricing_interest_shown'),
 
   // Remix viral loop
-  remixLanded:         (templateId: string)            => track('remix_landed',    { templateId }),
+  remixLanded:         (templateId: string)            => track('remix_landed',           { templateId }),
+  remixExported:       (templateId: string)            => track('remix_export_completed', { templateId }),
+
+  // Monetization funnel
+  pricingTierClicked:  (tier: string)                  => track('pricing_tier_clicked',   { tier }),
 
   // Errors
   renderError:         (message: string)               => track('render_error',     { message }),

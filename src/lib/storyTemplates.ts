@@ -201,10 +201,10 @@ export const STORY_INTENTS: StoryIntent[] = [
     formats: ['twitter-post', 'linkedin-post', 'instagram-post'],
     color: '#fb7185',
     slides: [
-      { role: 'tease',      label: 'Teaser',     defaultTitle: 'Something new is coming.',      defaultSubtitle: "We've been building this for months.",             defaultCallout: 'Coming soon' },
-      { role: 'sneak-peek', label: 'Sneak Peek', defaultTitle: 'A first look.',                 defaultSubtitle: 'One corner of what launches next week.',           defaultCallout: 'Sneak peek' },
-      { role: 'date',       label: 'The Date',   defaultTitle: 'Launching [date].',             defaultSubtitle: 'Mark it. You saw it here first.',                  defaultCallout: 'Save the date' },
-      { role: 'cta',        label: 'Reminder',   defaultTitle: "Don't miss it.",                defaultSubtitle: 'Follow now and catch the launch live.',            defaultCallout: 'Get notified' },
+      { role: 'tease',    label: 'Teaser',     defaultTitle: 'Something new is coming.',      defaultSubtitle: "We've been building this for months.",             defaultCallout: 'Coming soon' },
+      { role: 'demo',     label: 'Sneak Peek', defaultTitle: 'A first look.',                 defaultSubtitle: 'One corner of what launches next week.',           defaultCallout: 'Sneak peek' },
+      { role: 'headline', label: 'The Date',   defaultTitle: 'Launching [date].',             defaultSubtitle: 'Mark it. You saw it here first.',                  defaultCallout: 'Save the date' },
+      { role: 'cta',      label: 'Reminder',   defaultTitle: "Don't miss it.",                defaultSubtitle: 'Follow now and catch the launch live.',            defaultCallout: 'Get notified' },
     ],
   },
   {
@@ -215,10 +215,10 @@ export const STORY_INTENTS: StoryIntent[] = [
     formats: ['twitter-post', 'linkedin-post', 'linkedin-carousel'],
     color: '#fcd34d',
     slides: [
-      { role: 'headline', label: 'The Number',  defaultTitle: 'We just hit [milestone].',       defaultSubtitle: 'A number that felt impossible a year ago.',        defaultCallout: 'Milestone 🎉' },
-      { role: 'journey',  label: 'The Journey', defaultTitle: 'How we got here.',               defaultSubtitle: 'Shipped weekly. Listened constantly. No shortcuts.', defaultCallout: 'The journey' },
-      { role: 'thanks',   label: 'Thank You',   defaultTitle: 'This one is on you.',            defaultSubtitle: 'Every user, every bug report, every share. Thanks.', defaultCallout: 'Thank you' },
-      { role: 'cta',      label: 'CTA',         defaultTitle: 'On to the next one.',            defaultSubtitle: 'Follow the journey — next milestone loading.',      defaultCallout: 'Next up →' },
+      { role: 'headline',   label: 'The Number',  defaultTitle: 'We just hit [milestone].',       defaultSubtitle: 'A number that felt impossible a year ago.',        defaultCallout: 'Milestone 🎉' },
+      { role: 'transition', label: 'The Journey', defaultTitle: 'How we got here.',               defaultSubtitle: 'Shipped weekly. Listened constantly. No shortcuts.', defaultCallout: 'The journey' },
+      { role: 'benefit',    label: 'Thank You',   defaultTitle: 'This one is on you.',            defaultSubtitle: 'Every user, every bug report, every share. Thanks.', defaultCallout: 'Thank you' },
+      { role: 'cta',        label: 'CTA',         defaultTitle: 'On to the next one.',            defaultSubtitle: 'Follow the journey — next milestone loading.',      defaultCallout: 'Next up →' },
     ],
   },
 ]

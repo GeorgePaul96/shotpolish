@@ -164,6 +164,63 @@ export const STORY_INTENTS: StoryIntent[] = [
       { role: 'cta',       label: 'CTA Slide',   defaultTitle: 'Try it free today.',                     defaultSubtitle: "We'd love your upvote. It means the world.",  defaultCallout: 'Upvote ↑' },
     ],
   },
+  {
+    id: 'feature-friday',
+    label: 'Feature Friday',
+    icon: '🗓️',
+    description: 'Weekly spotlight on one feature — post it every Friday',
+    formats: ['linkedin-carousel', 'twitter-post', 'linkedin-post'],
+    color: '#818cf8',
+    slides: [
+      { role: 'hook',    label: 'Hook',        defaultTitle: 'Feature Friday, week 12.',        defaultSubtitle: 'One feature. One minute. Every Friday.',           defaultCallout: 'Feature Friday' },
+      { role: 'feature', label: 'The Feature', defaultTitle: 'This week: [feature name].',      defaultSubtitle: 'The small thing that saves you the most time.',    defaultCallout: 'This week' },
+      { role: 'demo',    label: 'In Action',   defaultTitle: "Here's what it looks like.",      defaultSubtitle: 'Straight from the product — no mockups.',          defaultCallout: 'Real screenshot' },
+      { role: 'cta',     label: 'CTA',         defaultTitle: 'New feature every Friday.',       defaultSubtitle: 'Follow along so you never miss one.',              defaultCallout: 'See you next week' },
+    ],
+  },
+  {
+    id: 'week-in-review',
+    label: 'Week in Review',
+    icon: '📅',
+    description: 'Everything you shipped this week, in one carousel',
+    formats: ['linkedin-carousel', 'linkedin-post', 'twitter-post'],
+    color: '#38bdf8',
+    slides: [
+      { role: 'headline', label: 'Headline',   defaultTitle: 'What we shipped this week.',      defaultSubtitle: 'A quick tour of everything new.',                  defaultCallout: 'Week in review' },
+      { role: 'step-1',   label: 'Ship 1',     defaultTitle: 'Shipped: [first thing].',         defaultSubtitle: 'Why we built it and who asked for it.',            defaultCallout: 'Shipped ✓' },
+      { role: 'step-2',   label: 'Ship 2',     defaultTitle: 'Shipped: [second thing].',        defaultSubtitle: 'A fix, an improvement, or a brand-new capability.', defaultCallout: 'Shipped ✓' },
+      { role: 'result',   label: 'The Numbers',defaultTitle: 'The week by the numbers.',        defaultSubtitle: 'Commits, releases, users helped — your pick.',      defaultCallout: 'This week' },
+      { role: 'cta',      label: 'CTA',        defaultTitle: 'Back next week.',                 defaultSubtitle: 'We ship every week and post it every week.',        defaultCallout: 'Follow along' },
+    ],
+  },
+  {
+    id: 'launch-countdown',
+    label: 'Launch Countdown',
+    icon: '⏳',
+    description: 'Build anticipation in the days before a launch',
+    formats: ['twitter-post', 'linkedin-post', 'instagram-post'],
+    color: '#fb7185',
+    slides: [
+      { role: 'tease',      label: 'Teaser',     defaultTitle: 'Something new is coming.',      defaultSubtitle: "We've been building this for months.",             defaultCallout: 'Coming soon' },
+      { role: 'sneak-peek', label: 'Sneak Peek', defaultTitle: 'A first look.',                 defaultSubtitle: 'One corner of what launches next week.',           defaultCallout: 'Sneak peek' },
+      { role: 'date',       label: 'The Date',   defaultTitle: 'Launching [date].',             defaultSubtitle: 'Mark it. You saw it here first.',                  defaultCallout: 'Save the date' },
+      { role: 'cta',        label: 'Reminder',   defaultTitle: "Don't miss it.",                defaultSubtitle: 'Follow now and catch the launch live.',            defaultCallout: 'Get notified' },
+    ],
+  },
+  {
+    id: 'milestone',
+    label: 'Milestone',
+    icon: '🎉',
+    description: 'Celebrate users, revenue, stars — build in public',
+    formats: ['twitter-post', 'linkedin-post', 'linkedin-carousel'],
+    color: '#fcd34d',
+    slides: [
+      { role: 'headline', label: 'The Number',  defaultTitle: 'We just hit [milestone].',       defaultSubtitle: 'A number that felt impossible a year ago.',        defaultCallout: 'Milestone 🎉' },
+      { role: 'journey',  label: 'The Journey', defaultTitle: 'How we got here.',               defaultSubtitle: 'Shipped weekly. Listened constantly. No shortcuts.', defaultCallout: 'The journey' },
+      { role: 'thanks',   label: 'Thank You',   defaultTitle: 'This one is on you.',            defaultSubtitle: 'Every user, every bug report, every share. Thanks.', defaultCallout: 'Thank you' },
+      { role: 'cta',      label: 'CTA',         defaultTitle: 'On to the next one.',            defaultSubtitle: 'Follow the journey — next milestone loading.',      defaultCallout: 'Next up →' },
+    ],
+  },
 ]
 
 export const FORMAT_LABELS: Record<string, string> = {

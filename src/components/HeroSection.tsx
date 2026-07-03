@@ -97,8 +97,8 @@ export function HeroSection() {
         custom={1} variants={fadeUp} initial="hidden" animate="visible"
         className="max-w-3xl text-center text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter text-[#111827] leading-[1.08]"
       >
-        Turn product screenshots into{' '}
-        <span className="text-gradient">launch-ready stories.</span>
+        Turn screenshots into{' '}
+        <span className="text-gradient">animated launch carousels.</span>
       </motion.h1>
 
       {/* Subheadline */}
@@ -106,7 +106,7 @@ export function HeroSection() {
         custom={2} variants={fadeUp} initial="hidden" animate="visible"
         className="mt-5 max-w-xl text-center text-base sm:text-lg text-[#374151] leading-relaxed"
       >
-        Add spotlight focus, annotations, motion, and story-driven layouts in seconds.
+        Launches, feature drops, changelogs — every week, on-brand, without a designer.
       </motion.p>
 
       {/* CTAs */}
@@ -139,7 +139,7 @@ export function HeroSection() {
         custom={4} variants={fadeUp} initial="hidden" animate="visible"
         className="mt-4 text-xs text-[#6B7280]"
       >
-        No account required · Export in 1 click
+        No account required · Your screenshots never leave your browser
       </motion.p>
 
       {/* Before / After comparison */}

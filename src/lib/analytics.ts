@@ -61,4 +61,9 @@ export const Events = {
   storyAnimComplete:   (slides: number, format: string) => track('story_anim_complete', { slides, format }),
   storyAnimDownload:   (format: string)                 => track('story_anim_download', { format }),
   storyAnimError:      (slides: number)                 => track('story_anim_error',    { slides }),
+
+  // Story PDF carousel (LinkedIn document posts)
+  storyPdfStarted:     (slides: number)                => track('story_pdf_started',  { slides }),
+  storyPdfComplete:    (slides: number)                => track('story_pdf_complete', { slides }),
+  storyPdfError:       (slides: number)                => track('story_pdf_error',    { slides }),
 } as const

@@ -694,6 +694,7 @@ function ExportModal({
         await new Promise(r => setTimeout(r, 0)) // keep the modal responsive
       }
       const pdfBytes = await buildPdfFromPngs(pngs)
+      // Cast: TS 5.7+ types Uint8Array as Uint8Array<ArrayBufferLike>, which the DOM BlobPart type doesn't accept; inert at runtime.
       const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

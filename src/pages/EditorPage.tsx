@@ -251,11 +251,23 @@ function ExportMenu({
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
   }
 
+  // Fire the remix→export conversion exactly once per remix landing, on
+  // whichever export path the user takes first, then clear the flag so
+  // later exports in the same session don't re-count.
+  const fireRemixExportOnce = () => {
+    const remixId = sessionStorage.getItem('sp_remix')
+    if (remixId) {
+      Events.remixExported(remixId)
+      sessionStorage.removeItem('sp_remix')
+    }
+  }
+
   const handleExportCurrent = async () => {
     if (!canExport || exporting || isRecording || isExportingGIF) return
     if (isMotionEnabled) {
       setExporting('motion')
       track('motion_export_started')
+      fireRemixExportOnce()
       await exportMotionVideo()
       setExporting(null)
       onExported(['Reveal Video']); onClose()
@@ -264,8 +276,7 @@ function ExportMenu({
     setExporting('current')
     track('export_completed')
     Events.exportCompleted(intent, theme.name)
-    const remixId = sessionStorage.getItem('sp_remix')
-    if (remixId) Events.remixExported(remixId)
+    fireRemixExportOnce()
     const result = await exportImage()
     const fmtLabel = currentFormatId !== 'free' ? (SOCIAL_FORMATS[currentFormatId]?.platform ?? currentFormatId) : 'PNG'
     if (result) download(result, `shotpolish-${intent.replace(/\s+/g,'-').toLowerCase()}.png`)
@@ -284,6 +295,7 @@ function ExportMenu({
       await new Promise(r => setTimeout(r, 350))
     }
     const fmtNames = Array.from(selected).map(id => SOCIAL_FORMATS[id]?.platform ?? id)
+    fireRemixExportOnce()
     setExporting(null)
     onExported(fmtNames); onClose()
   }

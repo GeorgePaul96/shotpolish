@@ -50,7 +50,11 @@ export const Events = {
   pricingInterestShown:()                              => track('pricing_interest_shown'),
 
   // Remix viral loop
-  remixLanded:         (templateId: string)            => track('remix_landed',    { templateId }),
+  remixLanded:         (templateId: string)            => track('remix_landed',           { templateId }),
+  remixExported:       (templateId: string)            => track('remix_export_completed', { templateId }),
+
+  // Monetization funnel
+  pricingTierClicked:  (tier: string)                  => track('pricing_tier_clicked',   { tier }),
 
   // Errors
   renderError:         (message: string)               => track('render_error',     { message }),
@@ -61,4 +65,9 @@ export const Events = {
   storyAnimComplete:   (slides: number, format: string) => track('story_anim_complete', { slides, format }),
   storyAnimDownload:   (format: string)                 => track('story_anim_download', { format }),
   storyAnimError:      (slides: number)                 => track('story_anim_error',    { slides }),
+
+  // Story PDF carousel (LinkedIn document posts)
+  storyPdfStarted:     (slides: number)                => track('story_pdf_started',  { slides }),
+  storyPdfComplete:    (slides: number)                => track('story_pdf_complete', { slides }),
+  storyPdfError:       (slides: number)                => track('story_pdf_error',    { slides }),
 } as const

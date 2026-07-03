@@ -29,6 +29,7 @@ import {
   type StoryAnimConfig,
 } from '../lib/storyAnimationExport'
 import type { ExportProgress, ExportResult } from '../lib/motionExport'
+import { buildPdfFromPngs, dataUrlToBytes } from '../lib/pdfExport'
 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -532,6 +533,7 @@ function ExportModal({
   const [status, setStatus]  = useState<'idle' | 'exporting' | 'done'>('idle')
   const [progress, setProgress] = useState({ slide: 0, format: 0 })
   const [animStatus,   setAnimStatus]   = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
+  const [pdfStatus, setPdfStatus] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle')
   const [animProgress, setAnimProgress] = useState<ExportProgress | null>(null)
   const [animResult,   setAnimResult]   = useState<ExportResult | null>(null)
   const abortRef         = useRef<AbortController | null>(null)
@@ -677,6 +679,36 @@ function ExportModal({
     // so the Save button keeps working for as long as the modal is open.
   }
 
+  const handlePdfExport = async () => {
+    if (pdfStatus === 'exporting' || validSlides.length === 0) return
+    setPdfStatus('exporting')
+    Events.storyPdfStarted(validSlides.length)
+    try {
+      const pngs: Uint8Array[] = []
+      for (const slide of validSlides) {
+        // LinkedIn documents render best square — always export the carousel format.
+        const dataUrl = renderSlideOffscreen(
+          slide, assets, 'linkedin-carousel', themeIndex, padding, shadowOpacity, frameType, brandKit,
+        )
+        if (dataUrl) pngs.push(dataUrlToBytes(dataUrl))
+        await new Promise(r => setTimeout(r, 0)) // keep the modal responsive
+      }
+      const pdfBytes = await buildPdfFromPngs(pngs)
+      // Cast: TS 5.7+ types Uint8Array as Uint8Array<ArrayBufferLike>, which the DOM BlobPart type doesn't accept; inert at runtime.
+      const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `${intent.id}-carousel.pdf`; a.style.display = 'none'
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      setPdfStatus('done')
+      Events.storyPdfComplete(validSlides.length)
+    } catch {
+      setPdfStatus('error')
+      Events.storyPdfError(validSlides.length)
+    }
+  }
+
   const allFormats = Object.entries(SOCIAL_FORMATS)
     .filter(([id]) => id !== 'free')
     .map(([id, f]) => ({ id, label: f.platform, desc: f.description, color: f.color }))
@@ -795,6 +827,37 @@ function ExportModal({
           </div>
         </div>
         {/* ── End Animated Story section ──────────────────────────── */}
+
+        {/* ── LinkedIn Carousel PDF section ───────────────────────── */}
+        <div className="px-5 pt-4 pb-3 border-b border-[#E5E7EC]">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#6B7280] mb-2">
+            LinkedIn Carousel (PDF)
+          </p>
+          {pdfStatus === 'exporting' ? (
+            <div className="flex items-center justify-center gap-2 py-2 text-xs text-[#374151]">
+              <div className="w-3 h-3 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+              Building PDF…
+            </div>
+          ) : pdfStatus === 'error' ? (
+            <div className="text-[11px] text-red-400 text-center py-1">
+              PDF export failed.{' '}
+              <button onClick={() => setPdfStatus('idle')} className="underline">Try again</button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handlePdfExport}
+                disabled={validSlides.length === 0}
+                className="w-full py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed border border-[#DDE0E8] bg-white text-[#111827] hover:bg-gray-50"
+              >
+                {pdfStatus === 'done' ? 'Download again ↓' : `Download ${validSlides.length}-page PDF ↓`}
+              </button>
+              <p className="text-[10px] text-[#9CA3AF] text-center mt-1">
+                Upload as a LinkedIn document post — each slide becomes a swipeable page.
+              </p>
+            </>
+          )}
+        </div>
 
         {status === 'done' ? (
           <div className="p-5 flex flex-col items-center gap-4 text-center">

@@ -12,7 +12,7 @@ const PREVIEW_THEMES = [
     bg: '#06080f',
     glow: 'rgba(99,102,241,0.40)',
     glowMid: 'rgba(99,102,241,0.10)',
-    label: 'Deep indigo — perfect for dev tools and SaaS',
+    label: 'Deep indigo: perfect for dev tools and SaaS',
   },
   {
     id: 'emerald',
@@ -21,7 +21,7 @@ const PREVIEW_THEMES = [
     bg: '#030a06',
     glow: 'rgba(16,185,129,0.36)',
     glowMid: 'rgba(16,185,129,0.08)',
-    label: 'Fresh green — ideal for growth and finance apps',
+    label: 'Fresh green: ideal for growth and finance apps',
   },
   {
     id: 'rose',
@@ -30,7 +30,7 @@ const PREVIEW_THEMES = [
     bg: '#0a0306',
     glow: 'rgba(244,63,94,0.36)',
     glowMid: 'rgba(244,63,94,0.08)',
-    label: 'Warm rose — great for creative and lifestyle brands',
+    label: 'Warm rose: great for creative and lifestyle brands',
   },
   {
     id: 'slate',
@@ -39,7 +39,7 @@ const PREVIEW_THEMES = [
     bg: '#060809',
     glow: 'rgba(148,163,184,0.24)',
     glowMid: 'rgba(148,163,184,0.06)',
-    label: 'Neutral slate — universal and understated',
+    label: 'Neutral slate: universal and understated',
   },
   {
     id: 'amber',
@@ -48,7 +48,7 @@ const PREVIEW_THEMES = [
     bg: '#080600',
     glow: 'rgba(251,191,36,0.36)',
     glowMid: 'rgba(251,191,36,0.08)',
-    label: 'Golden amber — bold and energetic',
+    label: 'Golden amber: bold and energetic',
   },
   {
     id: 'sky',
@@ -57,7 +57,7 @@ const PREVIEW_THEMES = [
     bg: '#02080d',
     glow: 'rgba(56,189,248,0.36)',
     glowMid: 'rgba(56,189,248,0.08)',
-    label: 'Sky blue — clean and trustworthy',
+    label: 'Sky blue: clean and trustworthy',
   },
 ]
 
@@ -187,7 +187,7 @@ export function LivePreviewSection() {
             Six curated visual styles
           </h2>
           <p className="mt-3 text-[#374151] max-w-md mx-auto">
-            Pick the aesthetic that fits your brand. Switch instantly — no re-uploading required.
+            Pick the aesthetic that fits your brand. Switch instantly, no re-uploading required.
           </p>
         </motion.div>
 

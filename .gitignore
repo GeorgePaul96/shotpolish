@@ -33,6 +33,11 @@ pnpm-debug.log*
 *.pid
 *.patch
 
+# database dumps (may contain user data — never commit)
+db_dump.sql
+*.dump
+supabase/.temp/
+
 # cache
 .cache
 .parcel-cache

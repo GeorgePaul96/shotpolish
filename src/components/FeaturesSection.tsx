@@ -11,7 +11,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'AI Background Generation',
-    desc: 'One click produces a perfectly tuned background — dark gradients, radial glows, and ambient color — matched to your content.',
+    desc: 'One click produces a perfectly tuned background: dark gradients, radial glows, and ambient color, matched to your content.',
   },
   {
     icon: (
@@ -21,7 +21,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'Auto Padding & Spacing',
-    desc: 'Intelligent margin calculation gives your screenshot breathing room — never cramped, never wasteful.',
+    desc: 'Intelligent margin calculation gives your screenshot breathing room, never cramped, never wasteful.',
   },
   {
     icon: (
@@ -73,7 +73,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'Narrative Templates',
-    desc: 'Pick an intent — Launch Product, Explain Feature, Share Update — and get suggested headlines and callouts automatically.',
+    desc: 'Pick an intent (Launch Product, Explain Feature, Share Update) and get suggested headlines and callouts automatically.',
   },
 ]
 
@@ -139,7 +139,7 @@ export function FeaturesSection() {
             <span className="text-gradient">raw to remarkable</span>
           </h2>
           <p className="mt-4 text-[#374151] max-w-md mx-auto leading-relaxed">
-            Every tool you need to make screenshots worth sharing — nothing more, nothing less.
+            Every tool you need to make screenshots worth sharing, nothing more, nothing less.
           </p>
         </motion.div>
 

@@ -88,7 +88,7 @@ export function HeroSection() {
       >
         <span className="section-tag">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-glow-pulse inline-block" />
-          Now live — try it free
+          Now live, try it free
         </span>
       </motion.div>
 
@@ -106,7 +106,7 @@ export function HeroSection() {
         custom={2} variants={fadeUp} initial="hidden" animate="visible"
         className="mt-5 max-w-xl text-center text-base sm:text-lg text-[#374151] leading-relaxed"
       >
-        Launches, feature drops, changelogs — every week, on-brand, without a designer.
+        Launches, feature drops, changelogs, every week, on-brand, without a designer.
       </motion.p>
 
       {/* CTAs */}

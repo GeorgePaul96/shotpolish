@@ -5,10 +5,15 @@ import type { Rect } from './composition'
 // Records which 2D-context methods were called. Only the members drawWatermark touches are implemented.
 function mockCtx() {
   const calls: string[] = []
+  const colored: string[] = []
+  let currentFill = ''
   const ctx = {
     save: () => calls.push('save'),
     restore: () => calls.push('restore'),
-    fillText: (t: string) => calls.push(`fillText:${t}`),
+    fillText: (t: string) => {
+      calls.push(`fillText:${t}`)
+      colored.push(`${currentFill}|${t}`)
+    },
     measureText: (t: string) => ({ width: t.length * 6 }),
     beginPath: () => calls.push('beginPath'),
     roundRect: () => calls.push('roundRect'),
@@ -17,9 +22,9 @@ function mockCtx() {
     set font(_v: string) {},
     set textAlign(_v: string) {},
     set textBaseline(_v: string) {},
-    set fillStyle(_v: string) {},
+    set fillStyle(v: string) { currentFill = v },
   } as unknown as CanvasRenderingContext2D
-  return { ctx, calls }
+  return { ctx, calls, colored }
 }
 
 const wm: Rect = { x: 100, y: 100, w: 80, h: 20 }
@@ -38,6 +43,14 @@ describe('drawWatermark', () => {
     expect(calls).toContain('fillText:Made with ')
     expect(calls).toContain('fillText:Shot')
     expect(calls).toContain('fillText:Polish')
+  })
+
+  it('colors the "Shot" segment with the accent and the rest white', () => {
+    const { ctx, colored } = mockCtx()
+    drawWatermark(ctx, wm, 1200, 800, { watermark: true })
+    expect(colored).toContain('rgba(255,255,255,0.92)|Made with ')
+    expect(colored).toContain('#a78bfa|Shot')
+    expect(colored).toContain('rgba(255,255,255,0.92)|Polish')
   })
 
   it('draws the mark by default (opts undefined)', () => {

@@ -842,7 +842,8 @@ export function drawWatermark(
 
   const url = opts?.remixUrl // e.g. "shotpolish.org/r/launch-indigo"
 
-  // Brand tokens (mirror src/index.css + public/favicon.svg).
+  // Brand tokens (from src/index.css --accent / --accent-soft; the mark tile
+  // intentionally uses the darker product-UI accent, not the favicon's lighter #818cf8).
   const MARK_BG      = '#7C3AED'              // --accent (mark tile)
   const ACCENT_TEXT  = '#a78bfa'              // --accent-soft (reads on dark pill)
   const WHITE_STRONG = 'rgba(255,255,255,0.92)'

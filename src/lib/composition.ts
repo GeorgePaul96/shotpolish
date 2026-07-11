@@ -816,73 +816,117 @@ function renderMultiCallouts(
 }
 
 // ─── RENDERING PIPELINE ───────────────────────────────────────────────────────
+// Fill a rounded rectangle, falling back to a plain rect where roundRect is
+// unavailable (older canvas impls). Used by the watermark pill and mark tile.
+function fillRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number, r: number,
+) {
+  if (typeof (ctx as any).roundRect === 'function') {
+    ctx.beginPath()
+    ;(ctx as any).roundRect(x, y, w, h, r)
+    ctx.fill()
+  } else {
+    ctx.fillRect(x, y, w, h)
+  }
+}
+
 export function drawWatermark(
   ctx: CanvasRenderingContext2D,
-  watermark: Rect,
+  _watermark: Rect,
   compW: number,
   compH: number,
   opts?: RenderOptions,
 ) {
   if (opts?.watermark === false) return
 
-  const brand = 'Made with ShotPolish'
-  const url   = opts?.remixUrl // e.g. "shotpolish.app/r/launch-indigo"
+  const url = opts?.remixUrl // e.g. "shotpolish.org/r/launch-indigo"
+
+  // Brand tokens (mirror src/index.css + public/favicon.svg).
+  const MARK_BG      = '#7C3AED'              // --accent (mark tile)
+  const ACCENT_TEXT  = '#a78bfa'              // --accent-soft (reads on dark pill)
+  const WHITE_STRONG = 'rgba(255,255,255,0.92)'
+  const WHITE_DIM    = 'rgba(255,255,255,0.62)'
 
   ctx.save()
 
-  // Scale everything off the composition width so the badge reads the same on
-  // a 1200px tweet card or a 2160px story.
-  const unit   = Math.max(Math.round(compW * 0.011), 11)
-  const padX   = Math.round(unit * 0.85)
-  const padY   = Math.round(unit * 0.6)
+  // Scale everything off composition width so the badge reads the same on a
+  // 1200px tweet card or a 2160px story.
+  const unit    = Math.max(Math.round(compW * 0.011), 11)
+  const padX    = Math.round(unit * 0.85)
+  const padY    = Math.round(unit * 0.6)
   const lineGap = Math.round(unit * 0.35)
-  const margin = Math.max(Math.round(compW * 0.014), 12)
+  const markGap = Math.round(unit * 0.6)
+  const margin  = Math.max(Math.round(compW * 0.014), 12)
 
   const brandFont = `600 ${unit}px 'Inter',system-ui,sans-serif`
   const urlFont   = `500 ${Math.round(unit * 0.84)}px 'Inter',system-ui,sans-serif`
 
-  // Measure to size the pill.
-  ctx.font = brandFont
-  const brandW = ctx.measureText(brand).width
-  let urlW = 0
-  if (url) { ctx.font = urlFont; urlW = ctx.measureText(url).width }
-
-  const textW  = Math.max(brandW, urlW)
+  // ── Measure the text block ──
   const brandH = unit
   const urlH   = url ? Math.round(unit * 0.84) : 0
   const textH  = brandH + (url ? lineGap + urlH : 0)
 
-  const boxW = Math.round(textW + padX * 2)
-  const boxH = Math.round(textH + padY * 2)
+  // Line 1 is three segments so "Shot" can be accent-colored.
+  const seg1 = 'Made with '
+  const seg2 = 'Shot'
+  const seg3 = 'Polish'
+  ctx.font = brandFont
+  const seg1W  = ctx.measureText(seg1).width
+  const seg2W  = ctx.measureText(seg2).width
+  const seg3W  = ctx.measureText(seg3).width
+  const brandW = seg1W + seg2W + seg3W
+
+  let urlW = 0
+  if (url) { ctx.font = urlFont; urlW = ctx.measureText(url).width }
+
+  const textW    = Math.max(brandW, urlW)
+  const markSize = textH // square mark tile as tall as the text block
+
+  const boxW   = Math.round(markSize + markGap + textW + padX * 2)
+  const boxH   = Math.round(textH + padY * 2)
   const right  = compW - margin
   const bottom = compH - margin
   const left   = right - boxW
   const top    = bottom - boxH
   const radius = Math.round(boxH * 0.28)
 
-  // Subtle translucent pill so the mark stays legible over any screenshot.
+  // ── Pill background ──
   ctx.fillStyle = 'rgba(15,17,26,0.55)'
-  if (typeof (ctx as any).roundRect === 'function') {
-    ctx.beginPath()
-    ;(ctx as any).roundRect(left, top, boxW, boxH, radius)
-    ctx.fill()
-  } else {
-    ctx.fillRect(left, top, boxW, boxH)
-  }
+  fillRoundRect(ctx, left, top, boxW, boxH, radius)
 
-  // Text, right-aligned inside the pill.
-  ctx.textAlign    = 'right'
+  // ── Mark tile: violet rounded square + white "S" ──
+  const markX = left + padX
+  const markY = top + padY
+  ctx.fillStyle = MARK_BG
+  fillRoundRect(ctx, markX, markY, markSize, markSize, Math.round(markSize * 0.28))
+
+  ctx.fillStyle    = '#ffffff'
+  ctx.font         = `800 ${Math.round(markSize * 0.62)}px 'Inter',system-ui,sans-serif`
+  ctx.textAlign    = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('S', markX + markSize / 2, markY + markSize / 2 + Math.round(markSize * 0.04))
+
+  // ── Text block, left-aligned to the right of the mark ──
+  const textX = markX + markSize + markGap
+  ctx.textAlign    = 'left'
   ctx.textBaseline = 'top'
-  const textRight  = right - padX
 
-  ctx.font      = brandFont
-  ctx.fillStyle = 'rgba(255,255,255,0.92)'
-  ctx.fillText(brand, textRight, top + padY)
+  // Line 1: "Made with " + "Shot"(accent) + "Polish"
+  ctx.font = brandFont
+  let x = textX
+  ctx.fillStyle = WHITE_STRONG
+  ctx.fillText(seg1, x, top + padY); x += seg1W
+  ctx.fillStyle = ACCENT_TEXT
+  ctx.fillText(seg2, x, top + padY); x += seg2W
+  ctx.fillStyle = WHITE_STRONG
+  ctx.fillText(seg3, x, top + padY)
 
+  // Line 2: the remix link
   if (url) {
     ctx.font      = urlFont
-    ctx.fillStyle = 'rgba(255,255,255,0.62)'
-    ctx.fillText(url, textRight, top + padY + brandH + lineGap)
+    ctx.fillStyle = WHITE_DIM
+    ctx.fillText(url, textX, top + padY + brandH + lineGap)
   }
 
   ctx.restore()

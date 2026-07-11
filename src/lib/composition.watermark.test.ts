@@ -25,26 +25,42 @@ function mockCtx() {
 const wm: Rect = { x: 100, y: 100, w: 80, h: 20 }
 
 describe('drawWatermark', () => {
-  it('draws the ShotPolish mark when watermark is on (default)', () => {
-    const { ctx, calls } = mockCtx()
-    drawWatermark(ctx, wm, 1200, 800, undefined)
-    expect(calls).toContain('fillText:Made with ShotPolish')
-  })
-
-  it('draws the mark when watermark is explicitly true', () => {
+  it('draws the violet "S" mark tile', () => {
     const { ctx, calls } = mockCtx()
     drawWatermark(ctx, wm, 1200, 800, { watermark: true })
-    expect(calls).toContain('fillText:Made with ShotPolish')
+    expect(calls).toContain('fillText:S')
+  })
+
+  it('renders the ShotPolish wordmark with an accented "Shot" segment', () => {
+    const { ctx, calls } = mockCtx()
+    drawWatermark(ctx, wm, 1200, 800, { watermark: true })
+    // Line 1 is drawn as three segments so "Shot" can render in the accent color.
+    expect(calls).toContain('fillText:Made with ')
+    expect(calls).toContain('fillText:Shot')
+    expect(calls).toContain('fillText:Polish')
+  })
+
+  it('draws the mark by default (opts undefined)', () => {
+    const { ctx, calls } = mockCtx()
+    drawWatermark(ctx, wm, 1200, 800, undefined)
+    expect(calls).toContain('fillText:S')
+    expect(calls).toContain('fillText:Shot')
   })
 
   it('bakes the remix url into the badge when provided', () => {
     const { ctx, calls } = mockCtx()
-    drawWatermark(ctx, wm, 1200, 800, { watermark: true, remixUrl: 'shotpolish.app/r/launch-indigo' })
-    expect(calls).toContain('fillText:Made with ShotPolish')
-    expect(calls).toContain('fillText:shotpolish.app/r/launch-indigo')
+    drawWatermark(ctx, wm, 1200, 800, { watermark: true, remixUrl: 'shotpolish.org/r/launch-indigo' })
+    expect(calls).toContain('fillText:shotpolish.org/r/launch-indigo')
   })
 
-  it('draws a pill background', () => {
+  it('omits the second line when no remix url is given', () => {
+    const { ctx, calls } = mockCtx()
+    drawWatermark(ctx, wm, 1200, 800, { watermark: true })
+    const urlLines = calls.filter(c => c.startsWith('fillText:shotpolish'))
+    expect(urlLines).toEqual([])
+  })
+
+  it('draws the pill background', () => {
     const { ctx, calls } = mockCtx()
     drawWatermark(ctx, wm, 1200, 800, { watermark: true })
     expect(calls).toContain('roundRect')

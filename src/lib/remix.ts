@@ -16,7 +16,7 @@ export function remixHost(): string {
 
 /**
  * Human-readable link baked into the watermark badge.
- * With a template id: "shotpolish.app/r/launch-indigo".
+ * With a template id: "shotpolish.org/r/launch-indigo".
  * Without one (custom style): just the host, so the badge always carries a link.
  */
 export function buildRemixUrl(templateId?: string): string {

@@ -136,7 +136,7 @@ export interface RenderOptions {
   watermark?: boolean
   /**
    * Short, human-readable link baked into the watermark badge (e.g.
-   * "shotpolish.app/r/launch-indigo"). Drives the remix viral loop: a viewer
+   * "shotpolish.org/r/launch-indigo"). Drives the remix viral loop: a viewer
    * of a posted asset can type/scan it to remix that exact style. Ignored when
    * watermark is false. See src/lib/remix.ts.
    */

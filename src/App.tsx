@@ -7,6 +7,7 @@ import { BrandKitPage } from './pages/BrandKitPage'
 import { PricingPage } from './pages/PricingPage'
 import { AccountPage } from './pages/AccountPage'
 import { LegalPages } from './components/LegalPages'
+import PostHogPageview from './components/PostHogPageview'
 import { isSupabaseConfigured } from './lib/supabase'
 
 // Remix loop entry: a shared watermark link (shotpolish.org/r/<templateId>)
@@ -20,6 +21,7 @@ function RemixRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
+      <PostHogPageview />
       <Routes>
         <Route
           path="/"

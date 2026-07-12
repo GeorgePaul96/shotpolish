@@ -3,6 +3,7 @@ import { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { initDB, WORKSPACE_STORE, ASSET_STORE, type LaunchWorkspace, saveWorkspaceToDB } from '../lib/workspaceStore'
 import type { Plan } from '../lib/entitlements'
+import { phIdentify, phReset } from '../lib/posthog'
 
 interface AuthContextType {
   user: User | null
@@ -125,10 +126,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(activeUser)
       setLoading(false)
       if (activeUser) {
+        phIdentify(activeUser.id)
         migrateLocalToCloud(activeUser)
         fetchBrandKit(activeUser.id)
         fetchPlan(activeUser.id)
       } else {
+        phReset()
         setBrandKit(null)
         setPlan('free')
       }
@@ -139,10 +142,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(activeUser)
       setLoading(false)
       if (activeUser) {
+        phIdentify(activeUser.id)
         migrateLocalToCloud(activeUser)
         fetchBrandKit(activeUser.id)
         fetchPlan(activeUser.id)
       } else {
+        phReset()
         setBrandKit(null)
         setPlan('free')
       }

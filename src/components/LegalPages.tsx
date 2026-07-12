@@ -29,8 +29,8 @@ export function PrivacyPolicy() {
         <p style={s.p}>
           We use Plausible Analytics and PostHog, privacy-focused product analytics
           tools, to collect anonymous usage data: page views, referral sources, country,
-          device type, and product events (uploads, exports). PostHog is hosted in the EU,
-          uses no advertising or session-recording, and stores its identifier in your
+          device type, and product events (uploads, exports). PostHog is hosted in the EU
+          by default, uses no advertising or session-recording, and stores its identifier in your
           browser's local storage — not cookies. Neither tool ever receives your image
           data, and we never send them personal information beyond an anonymous identifier.
         </p>

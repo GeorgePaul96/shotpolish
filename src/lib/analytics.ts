@@ -1,7 +1,7 @@
 /**
  * ShotPolish Analytics
  *
- * Wraps Plausible's custom event API.
+ * Dual-sink: fans out each event to Plausible's and PostHog's custom event APIs.
  * All calls are fire-and-forget — they never throw or block the UI.
  *
  * Usage:

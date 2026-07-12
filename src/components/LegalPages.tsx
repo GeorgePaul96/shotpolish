@@ -27,10 +27,12 @@ export function PrivacyPolicy() {
           sent to our servers.
         </p>
         <p style={s.p}>
-          We use Plausible Analytics, a privacy-focused analytics tool, to collect
-          anonymous usage data: page views, referral sources, country, device type,
-          and product events (uploads, exports). Plausible does not use cookies and
-          does not collect personally identifiable information.
+          We use Plausible Analytics and PostHog, privacy-focused product analytics
+          tools, to collect anonymous usage data: page views, referral sources, country,
+          device type, and product events (uploads, exports). PostHog is hosted in the EU,
+          uses no advertising or session-recording, and stores its identifier in your
+          browser's local storage — not cookies. Neither tool ever receives your image
+          data, and we never send them personal information beyond an anonymous identifier.
         </p>
 
         <h2 style={s.h2}>Cookies</h2>
@@ -43,8 +45,9 @@ export function PrivacyPolicy() {
 
         <h2 style={s.h2}>Third-party services</h2>
         <p style={s.p}>
-          We use Plausible Analytics (plausible.io). Their privacy policy is
-          available at plausible.io/privacy.
+          We use Plausible Analytics (plausible.io) and PostHog (posthog.com) for
+          privacy-focused analytics. Their privacy policies are available at
+          plausible.io/privacy and posthog.com/privacy.
         </p>
 
         <h2 style={s.h2}>Contact</h2>

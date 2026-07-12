@@ -41,6 +41,8 @@ verified tokens/signatures inside edge functions.
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (dummy fallback in `lib/supabase.ts`)
 - `VITE_STRIPE_PORTAL_URL` (customer portal link)
 - `VITE_PUBLIC_URL` (production origin baked into the watermark remix link; falls back to `https://shotpolish.org` — see `src/lib/remix.ts`)
+- `VITE_PUBLIC_POSTHOG_KEY` (PostHog project API key; unset ⇒ PostHog disabled/no-op — see `src/lib/posthog.ts`)
+- `VITE_PUBLIC_POSTHOG_HOST` (PostHog ingestion host; falls back to `https://eu.i.posthog.com`)
 - `DEV` (Vite built-in)
 
 **Edge functions (Deno, `Deno.env`)** — secret, never in client:

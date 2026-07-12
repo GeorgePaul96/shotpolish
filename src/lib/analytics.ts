@@ -10,19 +10,26 @@
  *   track('error', { context: 'canvas_render', message: err.message })
  */
 
+import { phCapture } from './posthog'
+
 type Props = Record<string, string | number | boolean>
 
 export function track(eventName: string, props?: Props): void {
+  // Plausible sink
   try {
-    // Plausible custom events
     if (typeof window !== 'undefined' && (window as any).plausible) {
       (window as any).plausible(eventName, { props })
     }
-
-    // Also log to console in development so you can verify events fire
     if (import.meta.env.DEV) {
       console.log('[Analytics]', eventName, props ?? '')
     }
+  } catch {
+    // Never let analytics crash the app
+  }
+
+  // PostHog sink (no-op unless configured; guarded internally, but wrap anyway)
+  try {
+    phCapture(eventName, props)
   } catch {
     // Never let analytics crash the app
   }

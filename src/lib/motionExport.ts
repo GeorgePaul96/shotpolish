@@ -1,4 +1,4 @@
-// Motion export pipeline — MP4 (H.264 where available), WebM fallback, GIF option.
+// Motion export pipeline, MP4 (H.264 where available), WebM fallback, GIF option.
 // All exports are async and non-blocking. Progress callbacks prevent UI freezing.
 
 import type { OutMsg } from '../workers/encode.worker'
@@ -116,7 +116,7 @@ export async function exportMotionGIF(
   // so a silently-dead worker can't leave the caller stuck in an exporting state.
   const IDLE_TIMEOUT_MS = 30_000
 
-  // Offscreen canvas for pixel extraction (must stay on the main thread —
+  // Offscreen canvas for pixel extraction (must stay on the main thread -
   // the composition engine renders to a DOM canvas). Only the CPU-heavy
   // quantize/encode is offloaded to the worker.
   const offscreen = document.createElement('canvas')
@@ -131,7 +131,7 @@ export async function exportMotionGIF(
       let watchdog: ReturnType<typeof setTimeout>
       const armWatchdog = () => {
         clearTimeout(watchdog)
-        watchdog = setTimeout(() => reject(new Error('GIF encode timed out — the encoder stopped responding')), IDLE_TIMEOUT_MS)
+        watchdog = setTimeout(() => reject(new Error('GIF encode timed out, the encoder stopped responding')), IDLE_TIMEOUT_MS)
       }
       armWatchdog()
 
@@ -198,7 +198,7 @@ export const FORMAT_COMPATIBILITY: Record<MotionFormat, { label: string; platfor
   mp4:  {
     label: 'MP4',
     platforms: ['X / Twitter', 'LinkedIn', 'Product Hunt', 'Instagram'],
-    note: 'Best for social platforms — native playback everywhere.',
+    note: 'Best for social platforms, native playback everywhere.',
   },
   webm: {
     label: 'WebM',

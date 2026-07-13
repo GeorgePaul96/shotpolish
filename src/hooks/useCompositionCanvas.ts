@@ -12,7 +12,7 @@ export function useCompositionCanvas(
   doc: CompositionDocument,
   canvasRef: RefObject<HTMLCanvasElement>,
   motionProgress: number = 1.0, // Optional reveal animation timeline progress (0.0 to 1.0)
-  watermark: boolean = true,    // false for entitled (Pro/LTD) users — drops the canvas watermark
+  watermark: boolean = true,    // false for entitled (Pro/LTD) users, drops the canvas watermark
   remixUrl?: string             // short link baked into the watermark badge (remix loop)
 ) {
   const [isRendering, setIsRendering] = useState(false)
@@ -95,7 +95,7 @@ export function useCompositionCanvas(
 
     const img = new Image()
     img.onerror = () => {
-      console.error('[useCompositionCanvas] Image failed — URL may be revoked:', imageUrl?.slice(0, 80))
+      console.error('[useCompositionCanvas] Image failed, URL may be revoked:', imageUrl?.slice(0, 80))
       imgRef.current = null
       setIsRendering(false)
     }

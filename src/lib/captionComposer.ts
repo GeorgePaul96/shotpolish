@@ -1,4 +1,4 @@
-// Grounded Caption Composer — reframes and structures copy variants instead of generic emoji slot-filling.
+// Grounded Caption Composer, reframes and structures copy variants instead of generic emoji slot-filling.
 // Designed for assistance, not authority. Adheres to grounding fallbacks when signals are weak.
 
 import type { StoryRole } from './composition'
@@ -52,7 +52,7 @@ export function composeGroundedCaptions(
       `👉 Start free: ${pOutcome}`
 
     // Variant 2: Technical Breakdown
-    const v2 = `🛠️ Technical overview of ${pName} — optimized for ${pAudience}:\n\n` +
+    const v2 = `🛠️ Technical overview of ${pName}, optimized for ${pAudience}:\n\n` +
       `• Focus: ${pDesc.replace(/\.$/, '')}\n` +
       `• Core: ${feature?.title || 'High reliability'}\n` +
       `• Output: ${output?.title || 'Visual proof'}\n\n` +

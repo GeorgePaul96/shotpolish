@@ -5,15 +5,15 @@ import { Events } from '../lib/analytics'
 interface Tier {
   id: 'monthly' | 'annual' | 'ltd'
   name: string
-  priceLabel: string      // placeholder — real pricing deferred
+  priceLabel: string      // placeholder, real pricing deferred
   blurb: string
   envKey: string          // Vite env var holding the Stripe Payment Link URL
 }
 
 const TIERS: Tier[] = [
-  { id: 'monthly', name: 'Pro Monthly', priceLabel: '$— / mo',  blurb: 'Everything in Pro, billed monthly.', envKey: 'VITE_STRIPE_PAYMENT_LINK_MONTHLY' },
-  { id: 'annual',  name: 'Pro Annual',  priceLabel: '$— / yr',  blurb: 'Two months free, billed yearly.',     envKey: 'VITE_STRIPE_PAYMENT_LINK_ANNUAL'  },
-  { id: 'ltd',     name: 'Lifetime',    priceLabel: '$— once',  blurb: 'Pay once, founders pricing.',          envKey: 'VITE_STRIPE_PAYMENT_LINK_LTD'     },
+  { id: 'monthly', name: 'Pro Monthly', priceLabel: 'TBD / mo',  blurb: 'Everything in Pro, billed monthly.', envKey: 'VITE_STRIPE_PAYMENT_LINK_MONTHLY' },
+  { id: 'annual',  name: 'Pro Annual',  priceLabel: 'TBD / yr',  blurb: 'Two months free, billed yearly.',     envKey: 'VITE_STRIPE_PAYMENT_LINK_ANNUAL'  },
+  { id: 'ltd',     name: 'Lifetime',    priceLabel: 'TBD once',  blurb: 'Pay once, founders pricing.',          envKey: 'VITE_STRIPE_PAYMENT_LINK_LTD'     },
 ]
 
 const FEATURES = [

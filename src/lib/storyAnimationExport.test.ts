@@ -48,7 +48,7 @@ describe('buildFrameSequence', () => {
     expect(cf.type).toBe('crossfade')
     // Outgoing slide has fully dissolved away (incoming is fully opaque).
     expect(cf.crossfadeAlpha).toBeCloseTo(0.0, 1)
-    // Incoming slide must NOT have started its reveal during the crossfade —
+    // Incoming slide must NOT have started its reveal during the crossfade -
     // otherwise it reaches mp=1.0 here then resets to 0 on its own first frame,
     // producing a one-frame flash (see flicker RCA). It reveals once, in its own frames.
     expect(cf.nextSlideProgress).toBe(0)

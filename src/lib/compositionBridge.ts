@@ -1,4 +1,4 @@
-// Story ↔ Editor bridge — module-level singleton that survives React navigation.
+// Story ↔ Editor bridge, module-level singleton that survives React navigation.
 // File objects and data URLs are used (not blob URLs, which die on component unmount).
 
 import type { StoryRole, FrameType } from './composition'
@@ -13,7 +13,7 @@ export interface BridgeSlideData {
   title: string
   callout: string
   selection: { x: number; y: number; w: number; h: number } | null
-  imageDataUrl: string  // stable canvas data URL (not blob URL — survives unmount)
+  imageDataUrl: string  // stable canvas data URL (not blob URL, survives unmount)
 }
 
 export interface StorySessionSnapshot {

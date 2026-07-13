@@ -82,7 +82,7 @@ export const SOCIAL_FORMATS: Record<string, SocialFormat> = {
   },
 }
 
-// Ordered groups for the format bar — core launch platforms only
+// Ordered groups for the format bar, core launch platforms only
 export const FORMAT_BAR: Array<{ label: string; id: string }> = [
   { label: 'Free',          id: 'free'             },
   { label: 'X / Twitter',   id: 'twitter-post'     },
@@ -93,7 +93,7 @@ export const FORMAT_BAR: Array<{ label: string; id: string }> = [
   { label: 'OG Image',      id: 'og-image'         },
 ]
 
-// Multi-export checklist — common launch bundle
+// Multi-export checklist, common launch bundle
 export const LAUNCH_BUNDLE: string[] = [
   'twitter-post',
   'instagram-post',

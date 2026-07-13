@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setPendingUpload, consumePendingUpload } from './pendingUpload'
 
-// A minimal stand-in for File — we only need object identity, not real File APIs.
+// A minimal stand-in for File, we only need object identity, not real File APIs.
 const fakeFile = (name: string) => ({ name }) as unknown as File
 
 describe('pendingUpload', () => {

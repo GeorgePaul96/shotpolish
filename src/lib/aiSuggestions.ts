@@ -1,5 +1,5 @@
 // Pre-built copy suggestions keyed by intent.
-// No API required — these are hand-crafted, founder-tested lines.
+// No API required, these are hand-crafted, founder-tested lines.
 
 export interface Suggestions {
   headlines: string[]

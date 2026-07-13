@@ -1,5 +1,5 @@
-// Grounded Product Context Engine — stores user context and performs lightweight presets inference.
-// No faked semantic intelligence — just deterministic keyword matching on the launch sentence description.
+// Grounded Product Context Engine, stores user context and performs lightweight presets inference.
+// No faked semantic intelligence, just deterministic keyword matching on the launch sentence description.
 
 export type LaunchGoal =
   | 'feature-launch'
@@ -87,7 +87,7 @@ export function inferPresetsFromDescription(description: string): {
     tone = 'founder'
   }
 
-  // 2. Infer Launch Goal — use raw description (negations don't typically affect launch intent words)
+  // 2. Infer Launch Goal, use raw description (negations don't typically affect launch intent words)
   if (rawDesc.includes('beta') || rawDesc.includes('early access') || rawDesc.includes('waitlist')) {
     launchGoal = 'beta'
   } else if (rawDesc.includes('redesign') || rawDesc.includes('rebrand') || rawDesc.includes('revamp')) {

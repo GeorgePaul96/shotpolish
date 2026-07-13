@@ -3,7 +3,7 @@ import { track } from '../lib/analytics'
 
 /**
  * Self-contained feedback modal.
- * Uses the same Formspree endpoint as the waitlist — responses tagged with type.
+ * Uses the same Formspree endpoint as the waitlist, responses tagged with type.
  * No external redirects. No Tally. No broken links.
  */
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzyowzb'
@@ -51,12 +51,12 @@ export function FeedbackButton() {
 
   return (
     <>
-      {/* Floating trigger — bottom LEFT to avoid overlap with waitlist banner */}
+      {/* Floating trigger, bottom LEFT to avoid overlap with waitlist banner */}
       <button onClick={open} style={s.trigger}>
         💬 Feedback
       </button>
 
-      {/* Modal overlay — click outside to close */}
+      {/* Modal overlay, click outside to close */}
       {status !== 'idle' && (
         <div style={s.overlay} onClick={e => e.target === e.currentTarget && close()}>
           <div style={s.modal}>
@@ -69,7 +69,7 @@ export function FeedbackButton() {
             {status === 'success' ? (
               <div style={s.centered}>
                 <div style={{ fontSize: 28 }}>🙏</div>
-                <p style={s.successText}>Thank you — genuinely read by the founder.</p>
+                <p style={s.successText}>Thank you, genuinely read by the founder.</p>
                 <button onClick={close} style={s.submitBtn}>Close</button>
               </div>
             ) : status === 'error' ? (

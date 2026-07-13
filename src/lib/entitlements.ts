@@ -1,4 +1,4 @@
-// Pure entitlement logic — no React, no Supabase. Single source of the
+// Pure entitlement logic, no React, no Supabase. Single source of the
 // plan→feature mapping used by the hook, the upgrade gate, and the editor.
 
 // NOTE: `Plan` is duplicated in supabase/functions/_shared/mapStripeEvent.ts

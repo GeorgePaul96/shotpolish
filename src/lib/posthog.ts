@@ -1,7 +1,7 @@
 // Env-gated PostHog wrapper. No-ops entirely when VITE_PUBLIC_POSTHOG_KEY is
 // unset, so the app boots without analytics config (dev/test/prod-without-key),
 // mirroring src/lib/supabase.ts. Privacy-hardened: cookieless (localStorage),
-// no autocapture, no session replay — honors the "no tracking cookies" promise.
+// no autocapture, no session replay, honors the "no tracking cookies" promise.
 import posthog from 'posthog-js'
 
 let enabled = false

@@ -22,10 +22,10 @@ import { getSupportedVideoMimeType, exportMotionGIF as libExportMotionGIF, type 
 function suggestFrameType(w: number, h: number): FrameType | null {
   if (w === 0 || h === 0) return null
   const ratio = w / h
-  if (ratio < 0.65) return 'iphone'    // tall portrait — phone
-  if (ratio < 0.85) return 'android'   // portrait-ish — android
-  if (ratio < 1.15) return 'ipad'      // near-square — tablet
-  return 'browser'                      // landscape — browser
+  if (ratio < 0.65) return 'iphone'    // tall portrait, phone
+  if (ratio < 0.85) return 'android'   // portrait-ish, android
+  if (ratio < 1.15) return 'ipad'      // near-square, tablet
+  return 'browser'                      // landscape, browser
 }
 
 export const INTENT_MAP: Record<string, string> = {
@@ -375,7 +375,7 @@ function ExportMenu({
       {isMotionEnabled && (
         <div className="px-3 pb-2 pt-1">
           {detectedFormat === 'mp4'
-            ? <p className="text-[9px] text-[#6B7280] leading-snug">MP4 — native playback on X, LinkedIn, Instagram &amp; Product Hunt.</p>
+            ? <p className="text-[9px] text-[#6B7280] leading-snug">MP4, native playback on X, LinkedIn, Instagram &amp; Product Hunt.</p>
             : <p className="text-[9px] text-[#6B7280] leading-snug">WebM plays in Chrome &amp; Firefox. Convert to MP4 before uploading to most social platforms.</p>
           }
         </div>
@@ -546,14 +546,14 @@ function ExportSuccessBanner({
           </div>
         </div>
         <p className="text-[11px] text-[#6B7280] leading-relaxed">
-          Your image is ready to post. Paste it directly — no further editing needed.
+          Your image is ready to post. Paste it directly, no further editing needed.
         </p>
       </div>
 
-      {/* Waitlist offer — secondary, opt-in */}
+      {/* Waitlist offer, secondary, opt-in */}
       <div className="border-t border-[#E5E7EC] px-4 py-3">
         {sent ? (
-          <p className="text-[11px] text-[#6B7280]">You're on the list — we'll email when Pro launches.</p>
+          <p className="text-[11px] text-[#6B7280]">You're on the list, we'll email when Pro launches.</p>
         ) : showJoin ? (
           <div className="flex gap-2">
             <input
@@ -698,7 +698,7 @@ export function EditorPage() {
     img.src = imageUrl
   }, [imageUrl])
 
-  // Bridge mode — restore slide state when arriving from Story editor
+  // Bridge mode, restore slide state when arriving from Story editor
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('mode') !== 'bridge') return
@@ -715,7 +715,7 @@ export function EditorPage() {
     window.history.replaceState({}, '', '/editor')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Remix landing — arriving from a shared watermark link (/r/:id -> /editor?remix=<id>).
+  // Remix landing, arriving from a shared watermark link (/r/:id -> /editor?remix=<id>).
   // Pre-apply the shared template and drop in a sample screenshot so the canvas is
   // alive immediately, then clean the URL. This closes the remix viral loop.
   useEffect(() => {
@@ -1047,7 +1047,7 @@ export function EditorPage() {
         },
         {
           type: 'Product Hunt',
-          text: `Hi PH! We built ${product}.\n\n${cleanHeadline} — ${cleanCallout}.\n\nWe'd love your feedback and support. Ask us anything below! 👇`,
+          text: `Hi PH! We built ${product}.\n\n${cleanHeadline}, ${cleanCallout}.\n\nWe'd love your feedback and support. Ask us anything below! 👇`,
         },
         {
           type: 'Build in Public',
@@ -1360,7 +1360,7 @@ export function EditorPage() {
                       )}
                     </div>
 
-                    {/* Spotlight guidance hint — shown when no spotlight is drawn */}
+                    {/* Spotlight guidance hint, shown when no spotlight is drawn */}
                     {!selection && !isDrawing && (
                       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 border border-[#E5E7EC] backdrop-blur-sm shadow-sm">
                         <svg className="w-3 h-3 text-[#6B7280]" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="4" rx="0.5" stroke="currentColor" strokeWidth="1"/><path d="M8.5 5v4M10.5 7H6.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/></svg>
@@ -1454,7 +1454,7 @@ export function EditorPage() {
                   <input
                     value={productContext}
                     onChange={e => setProductContext(e.target.value)}
-                    placeholder="e.g. Fiora — Figma QA plugin"
+                    placeholder="e.g. Fiora, Figma QA plugin"
                     className="input-field text-xs"
                   />
                   <p className="text-[9px] text-[#9CA3AF] mt-1 leading-snug">Used to personalise caption starters below</p>
@@ -1473,7 +1473,7 @@ export function EditorPage() {
                   >
                     ✦ Get caption starters
                   </button>
-                  <p className="text-[9px] text-[#9CA3AF] mt-1.5 text-center">Edit before posting — these are starting points</p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-1.5 text-center">Edit before posting, these are starting points</p>
                 </div>
                 {/* Quick export */}
                 {imageUrl && (
@@ -1532,7 +1532,7 @@ export function EditorPage() {
                   <span className="text-base">✦</span>
                   <div>
                     <h3 className="text-sm font-bold text-[#111827]">Caption Starters</h3>
-                    <p className="text-[10px] text-[#6B7280] mt-0.5">Edit these before posting — they're starting points</p>
+                    <p className="text-[10px] text-[#6B7280] mt-0.5">Edit these before posting, they're starting points</p>
                   </div>
                 </div>
                 <button

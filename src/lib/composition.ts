@@ -435,7 +435,7 @@ function renderIPhoneFrame(
   rr(ctx, deviceBody.x, deviceBody.y, deviceBody.w, deviceBody.h, outerCornerR)
   ctx.stroke()
 
-  // Side buttons — volume (left side), power (right side)
+  // Side buttons, volume (left side), power (right side)
   const btnW  = Math.max(deviceBody.w * 0.012, 3)
   const btnR  = btnW / 2
   const vol1Y = deviceBody.y + deviceBody.h * 0.22
@@ -992,7 +992,7 @@ export function renderComposition(
   ctx.scale(cardScale, cardScale)
   ctx.translate(-ccx, -ccy)
 
-  // 4. Shadow — cast from deviceBody for phones, card for browser/none
+  // 4. Shadow, cast from deviceBody for phones, card for browser/none
   if (shadowOpacity > 0.05) {
     const shadowTarget = frameType === 'browser' || frameType === 'none' ? card : deviceBody
     const shadowR      = frameType === 'browser' || frameType === 'none' ? cornerR : outerCornerR
@@ -1048,7 +1048,7 @@ export function renderComposition(
     if (frameType === 'android') renderAndroidOverlay(ctx, L)
     if (frameType === 'ipad')    renderIPadOverlay(ctx, L)
 
-    // 8. Spotlight — only renders when user explicitly draws a region
+    // 8. Spotlight, only renders when user explicitly draws a region
     const selection = doc.screenshot.selection
 
     if (selection) {
@@ -1078,7 +1078,7 @@ export function renderComposition(
         ctx.globalAlpha = spotlightAlpha
 
         // --- DRAW OUTSIDE SPOTLIGHT (BACKGROUND SUPPRESSION) ---
-        // Single subtle dimming — preserve context without destroying it
+        // Single subtle dimming, preserve context without destroying it
         ctx.fillStyle = 'rgba(0, 0, 0, 0.52)'
         ctx.fillRect(screenshot.x, screenshot.y, screenshot.w, screenshot.h)
 
@@ -1216,7 +1216,7 @@ export function renderComposition(
       }
     }
 
-    // Multi-callout annotations — numbered markers with labels, independent of spotlight
+    // Multi-callout annotations, numbered markers with labels, independent of spotlight
     if (doc.screenshot.callouts?.length) {
       renderMultiCallouts(ctx, doc.screenshot.callouts, screenshot, theme, motionProgress)
     }

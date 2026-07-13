@@ -1,6 +1,6 @@
 // Remix loop: the watermark on every free export carries a short, readable link
 // back to the exact template that made it. A viewer types/clicks it, lands on
-// /r/<id>, and is dropped into the editor with that style pre-applied — closing
+// /r/<id>, and is dropped into the editor with that style pre-applied, closing
 // the viral loop. Pure helpers so they can be unit-tested and reused by both the
 // canvas badge (display URL) and the router (internal path).
 
@@ -9,7 +9,7 @@
 // prod today). Override per-env only if the domain changes.
 const RAW_BASE = (import.meta.env.VITE_PUBLIC_URL as string | undefined) || 'https://shotpolish.org'
 
-/** Bare host (no protocol, no trailing slash) — e.g. "shotpolish.org". */
+/** Bare host (no protocol, no trailing slash), e.g. "shotpolish.org". */
 export function remixHost(): string {
   return RAW_BASE.replace(/^https?:\/\//, '').replace(/\/+$/, '')
 }

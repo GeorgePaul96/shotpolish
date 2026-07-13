@@ -12,7 +12,7 @@ export function FooterSection() {
           <span className="text-sm font-semibold text-[#111827] tracking-tight">
             <span className="text-accent">Shot</span>Polish
           </span>
-          <span className="text-[#6B7280] text-xs ml-1">— Turn screenshots into stories</span>
+          <span className="text-[#6B7280] text-xs ml-2">Turn screenshots into stories</span>
         </div>
 
         {/* Links */}

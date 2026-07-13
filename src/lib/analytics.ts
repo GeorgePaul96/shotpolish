@@ -2,7 +2,7 @@
  * ShotPolish Analytics
  *
  * Dual-sink: fans out each event to Plausible's and PostHog's custom event APIs.
- * All calls are fire-and-forget — they never throw or block the UI.
+ * All calls are fire-and-forget, they never throw or block the UI.
  *
  * Usage:
  *   track('screenshot_uploaded')
@@ -36,7 +36,7 @@ export function track(eventName: string, props?: Props): void {
 }
 
 /**
- * Named events — keeps usage consistent across the codebase.
+ * Named events, keeps usage consistent across the codebase.
  * Add new events here as you build features.
  */
 export const Events = {

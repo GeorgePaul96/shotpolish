@@ -1,5 +1,5 @@
 /**
- * Minimal legal pages — Privacy Policy and Terms of Service.
+ * Minimal legal pages, Privacy Policy and Terms of Service.
  *
  * These are intentionally simple. You are not a lawyer and neither is this file.
  * For a no-auth, no-payment, no-backend MVP that processes nothing server-side,
@@ -31,7 +31,7 @@ export function PrivacyPolicy() {
           tools, to collect anonymous usage data: page views, referral sources, country,
           device type, and product events (uploads, exports). PostHog is hosted in the EU
           by default, uses no advertising or session-recording, and stores its identifier in your
-          browser's local storage — not cookies. Neither tool ever receives your image
+          browser's local storage, not cookies. Neither tool ever receives your image
           data, and we never send them personal information beyond an anonymous identifier.
         </p>
 

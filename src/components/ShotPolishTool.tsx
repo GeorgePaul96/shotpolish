@@ -87,7 +87,7 @@ export function ShotPolishTool() {
   const [showWaitlist,   setShowWaitlist]   = useState(false)
   const [waitlistEmail,  setWaitlistEmail]  = useState('')
   const [waitlistSent,   setWaitlistSent]   = useState(false)
-  // Feedback modal state — inlined so it works regardless of App.tsx composition
+  // Feedback modal state, inlined so it works regardless of App.tsx composition
   const [fbStatus,  setFbStatus]  = useState<'idle'|'open'|'submitting'|'success'|'error'>('idle')
   const [fbResult,  setFbResult]  = useState('')
   const [fbWilling, setFbWilling] = useState('')
@@ -207,7 +207,7 @@ export function ShotPolishTool() {
       ctx.fillStyle = theme.colors[0]
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // 2. One large soft radial glow from center — the Emil signature move
+      // 2. One large soft radial glow from center, the Emil signature move
       const cx = canvas.width / 2
       const cy = canvas.height / 2
       const glowR = Math.max(canvas.width, canvas.height) * 0.72
@@ -429,7 +429,7 @@ export function ShotPolishTool() {
         }
       }
 
-      // ── Watermark — viral loop driver ───────────────────────────────────
+      // ── Watermark, viral loop driver ───────────────────────────────────
       // Small, tasteful, legible. Every share is a free ad.
       ctx.save()
       const wmText = 'shotpolish.org'
@@ -460,7 +460,7 @@ export function ShotPolishTool() {
   const submitFeedback = async () => {
     if (!fbResult) return
     setFbStatus('submitting')
-    // feedback_submitted — use plausible directly since track is standalone
+    // feedback_submitted, use plausible directly since track is standalone
     try { (window as any).plausible?.('feedback_submitted') } catch { /* noop */ }
     try {
       const res = await fetch('https://formspree.io/f/xvzyowzb', {
@@ -576,7 +576,7 @@ export function ShotPolishTool() {
             {selection && <span style={{ ...s.badge, background: theme.accent }}>✓ Area set</span>}
           </div>
 
-          {/* Live text preview — always shows current headline/callout state */}
+          {/* Live text preview, always shows current headline/callout state */}
           {imageUrl && (
             <div style={s.liveTextBar}>
               <div style={s.liveHeadline}>{headline || <span style={{ opacity: 0.3 }}>No headline</span>}</div>
@@ -655,7 +655,7 @@ export function ShotPolishTool() {
               <button
                 onClick={() => {
                   Events.exportCompleted(intent, THEMES[themeIndex].name)
-                  // Append to DOM first — required for programmatic click
+                  // Append to DOM first, required for programmatic click
                   // on data URLs in Chrome, Safari, and Firefox
                   const a = document.createElement('a')
                   a.href = processedImage
@@ -664,7 +664,7 @@ export function ShotPolishTool() {
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)
-                  // Show waitlist immediately — no timeout, no race condition
+                  // Show waitlist immediately, no timeout, no race condition
                   if (!hasExported) {
                     setHasExported(true)
                     setShowWaitlist(true)
@@ -680,7 +680,7 @@ export function ShotPolishTool() {
           )}
         </div>
       </div>
-      {/* ── Feedback button — bottom left, always visible ─────────────────── */}
+      {/* ── Feedback button, bottom left, always visible ─────────────────── */}
       <button
         onClick={() => { setFbStatus('open') }}
         style={{
@@ -728,7 +728,7 @@ export function ShotPolishTool() {
             {fbStatus === 'success' ? (
               <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 12, textAlign: 'center' as const, padding: '8px 0' }}>
                 <div style={{ fontSize: 28 }}>🙏</div>
-                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>Thank you — genuinely read by the founder.</p>
+                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>Thank you, genuinely read by the founder.</p>
                 <button onClick={closeFeedback} style={{ padding: '11px 20px', borderRadius: 10, border: 'none', background: '#818cf8', color: '#0f172a', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
               </div>
             ) : fbStatus === 'error' ? (
@@ -774,7 +774,7 @@ export function ShotPolishTool() {
         </div>
       )}
 
-      {/* Pro waitlist banner — shows once after first export */}
+      {/* Pro waitlist banner, shows once after first export */}
       {showWaitlist && (
         <div style={s.waitlistBanner}>
           <button onClick={() => setShowWaitlist(false)} style={s.waitlistClose} aria-label="Dismiss">✕</button>
@@ -832,10 +832,10 @@ export function ShotPolishTool() {
   )
 }
 
-// ─── STYLES — Emil Kowalski aesthetic ────────────────────────────────────────
+// ─── STYLES, Emil Kowalski aesthetic ────────────────────────────────────────
 // Key principles:
 //   • Near-black backgrounds (#06080f), never pure black
-//   • One radial glow per surface — never two competing gradients
+//   • One radial glow per surface, never two competing gradients
 //   • Glass cards: barely-there white border + backdrop-filter blur
 //   • Typography: Inter, tight letter-spacing, high contrast whites
 //   • Generous padding, very little visual noise
@@ -848,7 +848,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#e8eaf0',
     fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
     padding: '0 0 80px',
-    // Subtle radial glow from top-center — same technique as Emil's sites
+    // Subtle radial glow from top-center, same technique as Emil's sites
     backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.15) 0%, transparent 70%)',
   },
   header: {
@@ -903,7 +903,7 @@ const s: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap' as const,
     gap: 16,
     alignItems: 'flex-end',
-    // Glass card — Emil's signature surface treatment
+    // Glass card, Emil's signature surface treatment
     background: 'rgba(255,255,255,0.025)',
     border: '1px solid rgba(255,255,255,0.07)',
     borderRadius: 16,
@@ -949,7 +949,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '8px 11px',
     borderRadius: 8,
     border: '1px solid rgba(255,255,255,0.15)',
-    background: '#1a1f2e',   // solid dark — rgba backgrounds break native <select> on all browsers
+    background: '#1a1f2e',   // solid dark, rgba backgrounds break native <select> on all browsers
     color: '#fff',
     fontSize: 13,
     fontWeight: 500,
@@ -1002,7 +1002,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '0 24px',
   },
   panel: {
-    // Glass card — Emil's primary surface
+    // Glass card, Emil's primary surface
     background: 'rgba(255,255,255,0.02)',
     border: '1px solid rgba(255,255,255,0.07)',
     borderRadius: 20,
@@ -1075,7 +1075,7 @@ const s: Record<string, React.CSSProperties> = {
   previewImg: {
     maxWidth: '100%',
     borderRadius: 14,
-    // Deep shadow — makes the export look like it's floating
+    // Deep shadow, makes the export look like it's floating
     boxShadow: '0 0 0 1px rgba(255,255,255,0.06), 0 32px 80px rgba(0,0,0,0.8)',
   },
   emptyPreview: {
@@ -1095,7 +1095,7 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     cursor: 'pointer',
     letterSpacing: '0.03em',
-    // Glow effect on the export button — reward for reaching the final step
+    // Glow effect on the export button, reward for reaching the final step
     boxShadow: '0 0 24px rgba(0,0,0,0.4)',
     transition: 'opacity 0.15s, box-shadow 0.15s',
   },

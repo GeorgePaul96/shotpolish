@@ -11,7 +11,7 @@ beforeEach(() => {
   vi.unstubAllEnvs()
 })
 
-describe('posthog wrapper — disabled (no key)', () => {
+describe('posthog wrapper, disabled (no key)', () => {
   it('initPostHog is a no-op and isPostHogEnabled stays false', async () => {
     const posthog = (await import('posthog-js')).default
     const mod = await import('./posthog')
@@ -31,7 +31,7 @@ describe('posthog wrapper — disabled (no key)', () => {
   })
 })
 
-describe('posthog wrapper — enabled (key set)', () => {
+describe('posthog wrapper, enabled (key set)', () => {
   beforeEach(() => { vi.stubEnv('VITE_PUBLIC_POSTHOG_KEY', 'phc_test_key') })
 
   it('initPostHog inits with the privacy-hardened, cookieless config', async () => {

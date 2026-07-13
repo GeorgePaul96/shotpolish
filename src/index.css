@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties — Light Theme ──────────────────────────────────── */
+/* ── CSS Custom Properties, Light Theme ──────────────────────────────────── */
 :root {
   /* Backgrounds */
   --bg: #F5F6F8;
@@ -22,7 +22,7 @@
   --text-muted: #6B7280;
   --text-faint: #9CA3AF;
 
-  /* Accent — purple-700, WCAG AA on white (5.7:1) */
+  /* Accent, purple-700, WCAG AA on white (5.7:1) */
   --accent: #7C3AED;
   --accent-soft: #a78bfa;
   --accent-dim: rgba(124, 58, 237, 0.08);

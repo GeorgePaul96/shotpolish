@@ -1,5 +1,5 @@
 // LinkedIn carousels are PDF "document" posts: one page per slide.
-// Pure helpers — no DOM APIs, so they run in Vitest (node) and the browser.
+// Pure helpers, no DOM APIs, so they run in Vitest (node) and the browser.
 import { PDFDocument } from 'pdf-lib'
 
 /** Decode a base64 data URL (e.g. canvas.toDataURL output) into raw bytes. */

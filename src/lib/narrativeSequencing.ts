@@ -1,6 +1,6 @@
 // Product-aware narrative sequencing
 // Maps slide roles + OCR page types to a persuasive launch story arc
-// Explains every decision — never silently reorders
+// Explains every decision, never silently reorders
 
 import type { StoryRole } from './composition'
 import type { StoryIntent } from './storyTemplates'
@@ -71,7 +71,7 @@ export function scoreSlide(
 
   return {
     slideId, position: 'explanation', score: 0.28,
-    reason: 'Insufficient signals — placed in explanation by default',
+    reason: 'Insufficient signals, placed in explanation by default',
   }
 }
 
@@ -116,7 +116,7 @@ export function buildNarrativeArc(
     reasoning.push(`${buckets.conversion.length} conversion slide${buckets.conversion.length > 1 ? 's' : ''} (CTA/pricing/auth) placed last for natural action flow`)
   }
   if (scores.some(s => s.score < 0.40)) {
-    reasoning.push('Some slides had low signal confidence — check the slide list and reorder manually if needed')
+    reasoning.push('Some slides had low signal confidence, check the slide list and reorder manually if needed')
   }
 
   return {
@@ -159,7 +159,7 @@ export const POSITION_LABELS: Record<NarrativePosition, string> = {
   explanation: 'Feature',
   proof:       'Proof',
   conversion:  'CTA',
-  flexible:    '—',
+  flexible:    'Any',
 }
 
 export const POSITION_COLORS: Record<NarrativePosition, string> = {

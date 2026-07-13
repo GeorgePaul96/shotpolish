@@ -46,7 +46,7 @@ export interface StorySlide {
   callouts?: Callout[]
   // Records the user's original upload index. Never overwritten by automated processes.
   // Once automatic reordering is removed, this becomes the enforcement point for
-  // "user order is canonical" — slides render in this order unless the user explicitly
+  // "user order is canonical", slides render in this order unless the user explicitly
   // reorders via drag-and-drop or arrow controls.
   userDefinedPosition: number
 }
@@ -204,13 +204,13 @@ function IntentStep({ onSelect }: { onSelect: (intent: StoryIntent) => void }) {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DDE0E8] bg-gray-50 text-[11px] text-[#6B7280] mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Step 1 of 2 — Choose your story type
+              Step 1 of 2: Choose your story type
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827]">
               What are you launching?
             </h1>
             <p className="mt-3 text-base text-[#6B7280] max-w-lg mx-auto leading-relaxed">
-              Choose a story type. We'll suggest a slide structure and copy for that use case — you stay in control of the order and wording.
+              Choose a story type. We'll suggest a slide structure and copy for that use case, you stay in control of the order and wording.
             </p>
           </div>
 
@@ -396,7 +396,7 @@ function UploadStep({
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DDE0E8] bg-gray-50 text-[11px] text-[#6B7280] mb-5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              Step 2 of 2 — Add your screenshots
+              Step 2 of 2: Add your screenshots
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-[#111827]">Add your screenshots</h2>
             <p className="mt-2 text-sm text-[#6B7280]">
@@ -540,7 +540,7 @@ function ExportModal({
   const previewCanvasRef = useRef<HTMLCanvasElement>(null) // wired to preview canvas in Task 4
   const previewRafRef    = useRef<number | null>(null)
 
-  // Release the exported blob URL when it's replaced or the modal closes — tied to
+  // Release the exported blob URL when it's replaced or the modal closes, tied to
   // the result's lifetime, not a wall-clock timer that used to kill the Save button
   // after 60s while it was still on screen.
   useEffect(() => {
@@ -686,7 +686,7 @@ function ExportModal({
     try {
       const pngs: Uint8Array[] = []
       for (const slide of validSlides) {
-        // LinkedIn documents render best square — always export the carousel format.
+        // LinkedIn documents render best square, always export the carousel format.
         const dataUrl = renderSlideOffscreen(
           slide, assets, 'linkedin-carousel', themeIndex, padding, shadowOpacity, frameType, brandKit,
         )
@@ -853,7 +853,7 @@ function ExportModal({
                 {pdfStatus === 'done' ? 'Download again ↓' : `Download ${validSlides.length}-page PDF ↓`}
               </button>
               <p className="text-[10px] text-[#9CA3AF] text-center mt-1">
-                Upload as a LinkedIn document post — each slide becomes a swipeable page.
+                Upload as a LinkedIn document post, each slide becomes a swipeable page.
               </p>
             </>
           )}
@@ -1217,7 +1217,7 @@ function BuilderStep({
     return Math.min((viewportSize.width - 80) / L.compW, (viewportSize.height - 80) / L.compH)
   }, [L, viewportSize])
 
-  // Canvas container sizing — exact when L is ready, format-AR placeholder before that
+  // Canvas container sizing, exact when L is ready, format-AR placeholder before that
   const fmtAR = (SOCIAL_FORMATS[formatId]?.width ?? 16) / (SOCIAL_FORMATS[formatId]?.height ?? 9)
   const vw = Math.max(viewportSize.width - 80, 320)
   const vh = Math.max(viewportSize.height - 80, 200)
@@ -1446,7 +1446,7 @@ function BuilderStep({
             className="text-xs bg-white border border-[#DDE0E8] text-[#111827] rounded-lg px-2 py-1 outline-none cursor-pointer"
           >
             {Object.entries(SOCIAL_FORMATS).filter(([id]) => id !== 'free').map(([id, f]) => (
-              <option key={id} value={id}>{f.platform} — {f.description}</option>
+              <option key={id} value={id}>{f.platform}, {f.description}</option>
             ))}
           </select>
 
@@ -1495,7 +1495,7 @@ function BuilderStep({
 
       {/* Workspace */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar — slide list */}
+        {/* Left sidebar, slide list */}
         <motion.aside
           animate={{ width: leftOpen ? 200 : 44 }}
           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
@@ -1580,7 +1580,7 @@ function BuilderStep({
               </div>
             ) : (
               <div ref={viewportRef} className="flex-1 h-full flex items-center justify-center relative p-6 overflow-hidden">
-                {/* Canvas is always mounted — hook paints as soon as image loads */}
+                {/* Canvas is always mounted, hook paints as soon as image loads */}
                 <div
                   className="relative rounded-2xl"
                   style={{
@@ -1627,7 +1627,7 @@ function BuilderStep({
 
         </div>
 
-        {/* Right sidebar — text editing */}
+        {/* Right sidebar, text editing */}
         <motion.aside
           animate={{ width: rightOpen ? 240 : 44 }}
           transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
@@ -1761,7 +1761,7 @@ function analyzeScreenshot(img: HTMLImageElement): VisualSignals {
   }
 }
 
-// ─── Role Detection — enriches slide metadata without altering order ──────────
+// ─── Role Detection, enriches slide metadata without altering order ──────────
 
 // CRITICAL: User order is canonical.
 // This function may update `role` metadata only.
@@ -1856,7 +1856,7 @@ export function StoryModePage() {
     }
   }
 
-  // Tracks which asset IDs have been persisted — avoids re-writing binary files on every text edit
+  // Tracks which asset IDs have been persisted, avoids re-writing binary files on every text edit
   const savedAssetIdsRef = useRef<Set<string>>(new Set())
 
   // Stable per-session workspace id. Set once when a story begins (handleContinue),
@@ -1865,7 +1865,7 @@ export function StoryModePage() {
   // collided on a single 'draft-workspace' record and silently overwrote prior work.
   const workspaceIdRef = useRef<string | null>(null)
 
-  // 2a. Metadata-only autosave (3s debounce) — triggered by slide text edits, no binary writes
+  // 2a. Metadata-only autosave (3s debounce), triggered by slide text edits, no binary writes
   useEffect(() => {
     if (step !== 'builder' || !productContext || slides.length === 0) return
 
@@ -1878,14 +1878,14 @@ export function StoryModePage() {
     } as any
 
     const timer = setTimeout(() => {
-      // Pass empty assets — IDB skips the asset transaction when there's nothing to write
+      // Pass empty assets, IDB skips the asset transaction when there's nothing to write
       saveWorkspaceToDB(ws, {}).catch(err => console.warn('Workspace metadata autosave failed', err))
     }, 3000)
 
     return () => clearTimeout(timer)
   }, [slides, productContext, step, intent])
 
-  // 2b. Asset-only save — fires immediately when a new ready asset appears, not on text edits
+  // 2b. Asset-only save, fires immediately when a new ready asset appears, not on text edits
   useEffect(() => {
     if (step !== 'builder' || !productContext) return
 
@@ -1934,7 +1934,7 @@ export function StoryModePage() {
   useEffect(() => {
     if (step !== 'builder' || !intent || slides.length === 0 || sequenced) return
 
-    // A decode failure ('error') is terminal — treat it as "done" so one bad
+    // A decode failure ('error') is terminal, treat it as "done" so one bad
     // screenshot can't wedge the builder by leaving the gate permanently unmet.
     // applyRoleDetection already skips non-ready assets, leaving their template role.
     const allReady = slides.every(slide => {
@@ -1950,7 +1950,7 @@ export function StoryModePage() {
     // the user has selected an intent. It must stay in the dep array.
   }, [assets, slides, step, intent, sequenced])
 
-  // Bridge restore — runs once on mount when returning from editor
+  // Bridge restore, runs once on mount when returning from editor
   useEffect(() => {
     if (!hasReturnData()) return
     const returnedSlide = loadReturnFromEditor()

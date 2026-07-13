@@ -1,4 +1,4 @@
-// Launch posting guide — generates a platform-ordered launch plan from story intent + slides.
+// Launch posting guide, generates a platform-ordered launch plan from story intent + slides.
 // Advice is intent-aware and role-aware. Never generic.
 
 import type { StoryRole } from './composition'
@@ -24,11 +24,11 @@ export interface PostingPlan {
 
 // Platform metadata
 const PLATFORM_META: Record<string, { color: string; name: string; timing: string }> = {
-  'twitter-post':    { color: '#e7e9ea', name: 'X / Twitter',   timing: 'Post first — highest real-time reach' },
+  'twitter-post':    { color: '#e7e9ea', name: 'X / Twitter',   timing: 'Post first, highest real-time reach' },
   'linkedin-post':   { color: '#0077b5', name: 'LinkedIn',       timing: '2–4 hours after X post' },
   'product-hunt':    { color: '#da552f', name: 'Product Hunt',   timing: 'Submit at 12:01 AM PST on launch day' },
   'instagram-post':  { color: '#e1306c', name: 'Instagram Post', timing: 'Same day, evening' },
-  'instagram-story': { color: '#e1306c', name: 'Instagram Story',timing: 'At launch time — drives story views' },
+  'instagram-story': { color: '#e1306c', name: 'Instagram Story',timing: 'At launch time, drives story views' },
   'og-image':        { color: '#7c3aed', name: 'OG / Link',      timing: 'Live when your landing page goes up' },
   'reddit-post':     { color: '#ff4500', name: 'Reddit',         timing: '24–48 hours after launch' },
   'youtube-thumb':   { color: '#ff0000', name: 'YouTube',        timing: 'When uploading your demo video' },
@@ -57,12 +57,12 @@ const PLATFORM_SLIDE_PREF: Record<string, { max: number; roles: StoryRole[] }> =
 
 // Platform → purpose descriptions (intent-aware fallbacks)
 const PLATFORM_PURPOSE: Record<string, string> = {
-  'twitter-post':    'Maximum initial reach — hooks new audience in the first 24 hours.',
-  'linkedin-post':   'Educates buyers and builders — carousels get 3× more reach than single images.',
-  'product-hunt':    'Launch conversion — your best shot at top-10 visibility on launch day.',
-  'instagram-post':  'Visual credibility — single striking frame reaches warm audience.',
+  'twitter-post':    'Maximum initial reach, hooks new audience in the first 24 hours.',
+  'linkedin-post':   'Educates buyers and builders, carousels get 3× more reach than single images.',
+  'product-hunt':    'Launch conversion, your best shot at top-10 visibility on launch day.',
+  'instagram-post':  'Visual credibility, single striking frame reaches warm audience.',
   'instagram-story': 'Drives swipe-ups and story views from your existing followers.',
-  'og-image':        'Makes every shared link look launch-ready — zero-effort distribution.',
+  'og-image':        'Makes every shared link look launch-ready, zero-effort distribution.',
   'reddit-post':     'Reaches early adopters who want to see the real product.',
   'youtube-thumb':   'Drives click-through on demo or explainer videos.',
 }

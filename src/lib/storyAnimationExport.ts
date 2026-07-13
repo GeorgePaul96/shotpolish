@@ -28,7 +28,7 @@ export interface FrameSpec {
   nextSlideProgress?: number   // motionProgress for incoming slide; only on crossfade frames
 }
 
-// Minimal interface — structurally compatible with StorySlide from StoryModePage.
+// Minimal interface, structurally compatible with StorySlide from StoryModePage.
 // Using a local interface avoids importing from a page file into a lib.
 export interface AnimSlide {
   id: string
@@ -97,7 +97,7 @@ export function buildFrameSequence(
           // Incoming slide stays at its start state (mp=0) through the crossfade.
           // It dissolves in un-revealed, then performs its reveal exactly once in
           // its own slide frames. Pre-animating it here drove mp to 1.0 by the end
-          // of the crossfade, then its own frames reset it to 0 — a one-frame flash.
+          // of the crossfade, then its own frames reset it to 0, a one-frame flash.
           nextSlideProgress: 0,
         })
       }

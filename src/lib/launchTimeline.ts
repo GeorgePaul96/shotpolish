@@ -1,4 +1,4 @@
-// Grounded Launch Timeline Engine — generates slide-based launch rollout recommendations.
+// Grounded Launch Timeline Engine, generates slide-based launch rollout recommendations.
 // No generic algorithm advice or canned "best time" rules. Grounded strictly in asset roles and narrative context.
 
 import type { StoryRole } from './composition'

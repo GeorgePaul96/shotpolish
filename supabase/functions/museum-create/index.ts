@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
 
   const uploads: { path: string; token: string }[] = []
   for (const path of expectedPhotoPaths(museumId, m.exhibits.length, m.hasFinalPhoto)) {
-    const { data, error } = await admin.storage.from(BUCKET).createSignedUploadUrl(path)
+    // upsert lets the client safely retry a photo whose first attempt half-landed.
+    const { data, error } = await admin.storage.from(BUCKET).createSignedUploadUrl(path, { upsert: true })
     if (error || !data) return fail('Could not prepare photo uploads. Try again.', error?.message ?? 'no data')
     uploads.push({ path, token: data.token })
   }

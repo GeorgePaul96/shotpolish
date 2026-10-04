@@ -23,6 +23,7 @@ function RemixRedirect() {
 // grow. The fallback matches the museum's night background to avoid a flash.
 const MuseumViewerPage = lazy(() => import('./pages/MuseumViewerPage').then((m) => ({ default: m.MuseumViewerPage })))
 const MuseumExamplePage = lazy(() => import('./pages/MuseumViewerPage').then((m) => ({ default: m.MuseumExamplePage })))
+const MuseumBuilderPage = lazy(() => import('./pages/MuseumBuilderPage').then((m) => ({ default: m.MuseumBuilderPage })))
 
 function MuseumRoute({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0a1411' }} />}>{children}</Suspense>
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/story" element={<StoryModePage />} />
         <Route path="/m/:slug" element={<MuseumRoute><MuseumViewerPage /></MuseumRoute>} />
         <Route path="/museum/example" element={<MuseumRoute><MuseumExamplePage /></MuseumRoute>} />
+        <Route path="/museum/new" element={<MuseumRoute><MuseumBuilderPage /></MuseumRoute>} />
         {/* Account/billing routes only exist when auth is live, so anonymous
             visitors can't land on a broken sign-in/upgrade page. */}
         {isSupabaseConfigured && <Route path="/settings/brand" element={<BrandKitPage />} />}

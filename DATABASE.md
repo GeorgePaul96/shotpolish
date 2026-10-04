@@ -60,6 +60,35 @@ RLS: ALL where `auth.uid() = user_id`.
 Written ONLY by `stripe-webhook` (service role). Not user-facing, no RLS policy
 for clients.
 
+### museums  (Museum of You, no account required)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | storage folder name |
+| slug | text UNIQUE | 10-char base62, the public link `/m/<slug>` |
+| edit_key_hash | text | SHA-256 hex of the creator's secret edit key (never stored plain) |
+| recipient_name | text (1..40) | |
+| curator_name | text (<=40) | nullable |
+| tier | text `free` \| `full` | `full` set only by `stripe-webhook` |
+| status | text `draft` \| `live` | |
+| exhibit_count | int (1..20) | |
+| has_final_photo | bool | creator's fallback photo for the final frame |
+| published_at / expires_at | timestamptz | `expires_at` null = open forever |
+| stripe_session_id | text | |
+| created_at / updated_at | timestamptz | |
+
+### museum_exhibits
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| museum_id | uuid | FK → `museums(id)` ON DELETE CASCADE |
+| position | int (0..19) | UNIQUE per museum; photo at `museums/{museum_id}/{position}.jpg` |
+| title | text (1..80) | |
+| place / year / medium | text (<=60 / <=20 / <=100) | nullable |
+
+RLS on both with **no client policies**: only the `museum-*` edge functions and
+`stripe-webhook` (service role) touch them. "Open" = `status='live'` and
+(`expires_at` null or in the future).
+
 ## Cascade chain
 Delete `auth.users` row → `profiles` (CASCADE, via 0002) → `workspaces` +
 `brand_kits` (CASCADE). This is what makes `delete-account` fully remove a user.
@@ -71,12 +100,18 @@ Delete `auth.users` row → `profiles` (CASCADE, via 0002) → `workspaces` +
 | `0002_profiles_cascade.sql` | Replace profiles_id_fkey with ON DELETE CASCADE (deletion was previously blocked). |
 | `0003_profiles_lock_billing_columns.sql` | Revoke client UPDATE on billing columns; grant only `full_name` (closes plan self-upgrade). |
 | `0004_storage_assets_policies.sql` | Make the `assets` Storage bucket private + owner-scoped CRUD policies. |
+| `0005_museums.sql` | Museum of You: `museums`, `museum_exhibits` (RLS, no client policies) + private `museums` bucket. |
 
 ## Storage
 Bucket `assets` (private). User screenshots live at `assets/{user_id}/{ws_id}/{asset_id}`
 (written by `workspaceStore.ts`). Policies (0004) scope every operation to the
 owner via `(storage.foldername(name))[1] = auth.uid()`. `delete-account` purges
 the user's `assets/{user_id}/` tree on account deletion (Storage doesn't cascade).
+
+Bucket `museums` (private, no policies). Paths `museums/{museum_id}/{position}.jpg`
+and `museums/{museum_id}/final.jpg`. Uploads go through signed upload URLs from
+`museum-create`; reads through 1-hour signed URLs from `museum-get` (only while
+open). `museum-delete` removes the folder before deleting the row.
 
 ## Access patterns (where queried)
 - `AuthProvider.tsx` — `profiles.plan`, first `brand_kits` row.

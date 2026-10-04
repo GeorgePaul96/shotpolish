@@ -4,6 +4,7 @@
 import Stripe from 'npm:stripe@^17'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { mapStripeEvent } from '../_shared/mapStripeEvent.ts'
+import { mapMuseumPayment } from '../_shared/museum.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' })
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
@@ -32,6 +33,24 @@ Deno.serve(async (req) => {
   if (dupeError) {
     // Unique-violation -> we've already handled this event. Acknowledge and stop.
     return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
+  }
+
+  // Museum of You one-time purchase: unlock the full museum, open forever.
+  const museumPayment = mapMuseumPayment(event as any)
+  if (museumPayment) {
+    const now = new Date().toISOString()
+    const { error: museumError } = await supabase.from('museums')
+      .update({ tier: 'full', status: 'live', expires_at: null, stripe_session_id: museumPayment.sessionId, updated_at: now })
+      .eq('id', museumPayment.museumId)
+    if (museumError) {
+      // Same rollback as plan updates: let Stripe's retry reprocess this event.
+      await supabase.from('stripe_events').delete().eq('id', event.id)
+      console.error('stripe-webhook museum update failed', { eventId: event.id, museumId: museumPayment.museumId, error: museumError.message })
+      return new Response('Update failed', { status: 500 })
+    }
+    // Keep the original publish date if it was already open for free.
+    await supabase.from('museums').update({ published_at: now }).eq('id', museumPayment.museumId).is('published_at', null)
+    return new Response(JSON.stringify({ received: true, museum: true }), { status: 200 })
   }
 
   const update = mapStripeEvent(event as any)

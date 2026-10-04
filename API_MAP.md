@@ -15,6 +15,7 @@ verified tokens/signatures inside edge functions.
 - Handled events:
   | Stripe event | Result |
   |--------------|--------|
+  | `checkout.session.completed` / `checkout.session.async_payment_succeeded` with `metadata.kind='museum'` (paid) | museum ← tier `full`, status `live`, `expires_at` null (via `mapMuseumPayment`, checked first) |
   | `checkout.session.completed` | plan ← `metadata.plan` (`pro`/`ltd`), keyed by `client_reference_id` (user id); LTD assigns next `ltd_seat` once |
   | `customer.subscription.updated` | plan ← `pro`, set `plan_renews_at`, keyed by `customer` |
   | `customer.subscription.deleted` | plan ← `free`, clear `plan_renews_at`, keyed by `customer` |

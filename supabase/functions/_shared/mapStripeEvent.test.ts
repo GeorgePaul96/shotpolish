@@ -54,4 +54,12 @@ describe('mapStripeEvent', () => {
     const e: StripeEventLike = { id: 'evt_4', type: 'invoice.paid', data: { object: {} } }
     expect(mapStripeEvent(e)).toBeNull()
   })
+
+  it('ignores museum checkout sessions (handled by mapMuseumPayment)', () => {
+    const e: StripeEventLike = {
+      id: 'evt_5', type: 'checkout.session.completed',
+      data: { object: { id: 'cs_m', payment_status: 'paid', metadata: { kind: 'museum', museum_id: 'm1' } } },
+    }
+    expect(mapStripeEvent(e)).toBeNull()
+  })
 })

@@ -15,7 +15,7 @@
 | Preview build | `npm run preview` |
 | Tests | `npm test` (Vitest run mode) |
 | Deploy edge fn | `supabase functions deploy stripe-webhook` / `delete-account` |
-| Deploy Museum of You fns | `supabase functions deploy museum-create museum-publish museum-get museum-delete` |
+| Deploy Museum of You fns | `supabase functions deploy museum-create museum-publish museum-get museum-delete --no-verify-jwt` (public by design; they authorize with the edit key, and newer non-JWT publishable keys would otherwise be rejected) |
 
 ## Backend setup
 - Apply `supabase/schema.sql` (or run migrations in order) to a Supabase project.

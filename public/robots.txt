@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+# Museum of You gift links and creator pages are private; keep them out of search.
+Disallow: /m/
+Disallow: /museum/manage/
 
 Sitemap: https://shotpolish.org/sitemap.xml

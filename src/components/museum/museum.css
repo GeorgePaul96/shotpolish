@@ -250,3 +250,8 @@
 .mu-progress { display: grid; gap: 10px; justify-items: center; text-align: center; padding-block: 18px; }
 .mu-spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgb(246 220 150 / .2); border-top-color: var(--mu-gold-1); animation: mu-spin 1s linear infinite; }
 @keyframes mu-spin { to { transform: rotate(360deg); } }
+.mu-mini-link { display: inline-flex; align-items: center; text-decoration: none; }
+.mu-btn-danger { appearance: none; border: 0; cursor: pointer; font: 600 15px/1 var(--mu-f-ui); color: #fff; background: #b4452f;
+  padding: 13px 20px; border-radius: 99px; box-shadow: 0 6px 16px var(--mu-shade); }
+.mu-btn-danger:hover:not(:disabled) { filter: brightness(1.08); }
+.mu-btn-danger:disabled { opacity: .55; cursor: not-allowed; }

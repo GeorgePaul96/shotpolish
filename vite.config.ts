@@ -7,6 +7,13 @@ export default defineConfig({
     react(),
     visualizer({ open: false, filename: 'bundle-stats.html' })
   ],
+  build: {
+    rollupOptions: {
+      // museum.html is the same app with Museum of You link-preview tags; the
+      // host serves it for /museum* and /m/* (vercel.json, public/_redirects).
+      input: { main: 'index.html', museum: 'museum.html' },
+    },
+  },
   test: {
     environment: 'node',
   },

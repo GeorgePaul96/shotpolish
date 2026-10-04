@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/m/(.*)", "destination": "/museum.html" },
+    { "source": "/museum", "destination": "/museum.html" },
+    { "source": "/museum/(.*)", "destination": "/museum.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -16,6 +16,24 @@ are approximate (token-cost signal). Read large files by range, not whole.
 `/` Home · `/editor` · `/story` · `/settings/brand` · `/pricing` · `/account`
 · `/privacy` · `/terms` · `/r/:id` + `/remix/:id` (remix-loop entry → redirects to
 `/editor?remix=<id>`, which pre-applies that template)
+· Museum of You (lazy chunks): `/museum` landing · `/museum/example` · `/museum/new`
+builder · `/m/:slug` recipient viewer · `/museum/manage/:slug` creator page.
+`museum.html` (second Vite entry, same app) is served for `/museum*` and `/m/*`
+so gift links get invitation-style link previews.
+
+## Museum of You (`src/lib/museum/`, `src/components/museum/`)
+| File | Purpose |
+|------|---------|
+| `lib/museum/rules.ts` | Limits/price (synced with edge via `rules.sync.test.ts`), draft types, `draftProblems`, `daysLeft`. |
+| `lib/museum/api.ts` | Only client for `museum-*` functions + signed uploads; `ViewerMuseum` shape. |
+| `lib/museum/draftStore.ts` | IndexedDB draft; localStorage list of owned museums (slug + edit key). |
+| `lib/museum/image.ts` | Resize/re-encode photos (strips EXIF), `fitWithin`, `coverCrop`. |
+| `lib/museum/shareCard.ts` | 1080×1350 "Masterpiece" card (badge only on free museums). |
+| `lib/museum/samples.ts` | Painted sample photos for `/museum/example`. |
+| `components/museum/MuseumViewer.tsx` | Full-screen viewer: `Ticket` → `Gallery` (rooms) → `FinalRoom` (camera) → `GiftShop`. |
+| `components/museum/museum.css` | All museum styles, scoped under `.mu`. |
+| `pages/Museum{Landing,Builder,Viewer,Manage}Page.tsx` | Route screens. |
+| `components/MuseumPromo.tsx` | Hub card on the ShotPolish homepage. |
 
 ## Pages (`src/pages/`)
 | File | ~LOC | Purpose |
@@ -83,10 +101,15 @@ are approximate (token-cost signal). Read large files by range, not whole.
 | `functions/stripe-webhook/index.ts` | Signature verify, dedupe, apply plan update. |
 | `functions/delete-account/index.ts` | Self-only account deletion (JWT-derived id). |
 | `functions/_shared/mapStripeEvent.ts` | Pure Stripe-event → plan-update mapping. |
+| `migrations/0005_museums.sql` | Museum of You tables (RLS, no client policies) + private `museums` bucket. |
+| `functions/museum-{create,publish,get,delete}/index.ts` | Museum of You API (edit-key auth, signed URLs, Checkout). |
+| `functions/_shared/museum.ts` | Pure museum rules: validation, slug/key, state, payment mapping. |
+| `functions/_shared/http.ts` | CORS/JSON helpers for browser-called functions. |
 
 ## Tests (Vitest)
 `entitlements`, `account`, `composition.watermark`, `gifEncoder`,
-`pendingUpload`, `storyAnimationExport`, `_shared/mapStripeEvent`.
+`pendingUpload`, `storyAnimationExport`, `_shared/mapStripeEvent`,
+`_shared/museum`, `lib/museum/{rules,rules.sync,image}`.
 
 ## Historical (don't read unless doing archaeology)
 `docs/superpowers/plans/*` and `docs/superpowers/specs/*` — milestone planning

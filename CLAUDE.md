@@ -28,6 +28,10 @@ assets. Pure client-side SPA (React + Vite + TS) with a thin Supabase backend
   "grounded" copy/sequencing engines (deterministic, NOT real AI), supabase client
 - `src/hooks/` — `useCompositionCanvas`, `useEntitlement`
 - `src/workers/` — `encode.worker.ts` (off-thread GIF encode)
+- Museum of You (gift product, own look, lazy routes `/museum*`, `/m/:slug`):
+  `src/lib/museum/`, `src/components/museum/`, `src/pages/Museum*Page.tsx`,
+  `supabase/functions/museum-*`, `museum.html` (link-preview entry). Limits live
+  in both `src/lib/museum/rules.ts` and `_shared/museum.ts` (sync-tested).
 - `supabase/` — `schema.sql`, `migrations/`, `functions/`
 - `docs/` — reference docs (below) + `docs/superpowers/` historical plans/specs
 

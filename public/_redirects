@@ -1,1 +1,4 @@
-/*    /index.html   200
+/m/*        /museum.html  200
+/museum     /museum.html  200
+/museum/*   /museum.html  200
+/*          /index.html   200

@@ -22,9 +22,22 @@ export function PrivacyPolicy() {
 
         <h2 style={s.h2}>What we collect</h2>
         <p style={s.p}>
-          {COMPANY_NAME} does not collect or store your screenshots or exported images.
+          {COMPANY_NAME}'s screenshot tools do not collect or store your screenshots or exported images.
           All image processing happens entirely in your browser. No image data is ever
           sent to our servers.
+        </p>
+
+        <h2 style={s.h2}>Museum of You</h2>
+        <p style={s.p}>
+          If you build a museum, the photos and text you add are uploaded so the person you send it
+          to can see them. They are kept in private storage and shown only through your museum's
+          unlisted link. Photos are re-encoded in your browser before upload, which removes location
+          data. Free museums close after 7 days. You can delete a museum at any time from its private
+          manage link, which permanently removes its photos and text.
+        </p>
+        <p style={s.p}>
+          When a visitor steps into the final frame, their camera image stays on their device and is
+          never uploaded. Payments are processed by Stripe; we never see card details.
         </p>
         <p style={s.p}>
           We use Plausible Analytics and PostHog, privacy-focused product analytics

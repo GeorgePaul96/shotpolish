@@ -26,6 +26,17 @@ verified tokens/signatures inside edge functions.
   themselves. Calls `auth.admin.deleteUser(user.id)` (cascades, see DATABASE.md).
 - CORS: `*` origin, POST/OPTIONS.
 
+### Museum of You functions  (POST JSON, public, CORS `*`)
+No account. Ownership = a 32-char edit key returned once by `museum-create`;
+only its SHA-256 is stored. Pure logic in `_shared/museum.ts` (Vitest-covered);
+shared CORS/JSON helpers in `_shared/http.ts`. Called from `src/lib/museum/api.ts`.
+| Function | Body | Returns |
+|----------|------|---------|
+| `museum-create` | `{ recipientName, curatorName?, exhibits:[{title,place?,year?,medium?}], hasFinalPhoto }` | `{ slug, editKey, uploads:[{path, token}] }` (signed upload URLs, bucket `museums`) |
+| `museum-publish` | `{ slug, editKey, tier:'free'\|'full' }` | free: `{ state, tier, expiresAt }` (7 days, ≤3 exhibits, never renewed). full: `{ checkoutUrl }` (Stripe Checkout, `metadata.kind='museum'`, `metadata.museum_id`). 409 if photos missing. |
+| `museum-get` | `{ slug, editKey? }` | open: names, `branded`, exhibits with 1-hour signed `photoUrl`, `finalPhotoUrl`. closed: names only. draft/missing: 404 `{state:'missing'}` unless owner. Valid key adds `owner:{tier,status,expiresAt,publishedAt,exhibitCount}`. |
+| `museum-delete` | `{ slug, editKey }` | `{ deleted: true }` (photos removed, rows cascade) |
+
 ## Client → Supabase calls (where)
 | Call | File |
 |------|------|
@@ -48,6 +59,7 @@ verified tokens/signatures inside edge functions.
 **Edge functions (Deno, `Deno.env`)** — secret, never in client:
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- `PUBLIC_SITE_URL` (origin for museum Checkout success/cancel URLs; falls back to `https://shotpolish.org`)
 
 ## Invariants to preserve
 1. Service-role key only inside edge functions.

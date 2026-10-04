@@ -15,6 +15,7 @@
 | Preview build | `npm run preview` |
 | Tests | `npm test` (Vitest run mode) |
 | Deploy edge fn | `supabase functions deploy stripe-webhook` / `delete-account` |
+| Deploy Museum of You fns | `supabase functions deploy museum-create museum-publish museum-get museum-delete` |
 
 ## Backend setup
 - Apply `supabase/schema.sql` (or run migrations in order) to a Supabase project.
@@ -22,6 +23,9 @@
   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
 - Point a Stripe webhook at the deployed `stripe-webhook` URL; the Checkout
   session must set `client_reference_id` = Supabase user id and `metadata.plan`.
+- Museum of You: also set `PUBLIC_SITE_URL`, subscribe the webhook to
+  `checkout.session.completed` and `checkout.session.async_payment_succeeded`,
+  and run migration `0005_museums.sql` (creates the private `museums` bucket).
 
 ## Conventions
 - **TypeScript throughout.** `lib/` holds pure, testable logic (no React/Supabase

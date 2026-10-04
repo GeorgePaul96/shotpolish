@@ -77,4 +77,18 @@ export const Events = {
   storyPdfStarted:     (slides: number)                => track('story_pdf_started',  { slides }),
   storyPdfComplete:    (slides: number)                => track('story_pdf_complete', { slides }),
   storyPdfError:       (slides: number)                => track('story_pdf_error',    { slides }),
+
+  // Museum of You (never send names, captions, or photos)
+  museumBuilderStarted:  ()                              => track('museum_builder_started'),
+  museumExhibitAdded:    (count: number)                 => track('museum_exhibit_added',     { count }),
+  museumPreviewOpened:   ()                              => track('museum_preview_opened'),
+  museumPublishClicked:  (tier: string)                  => track('museum_publish_clicked',   { tier }),
+  museumPublished:       (tier: string)                  => track('museum_published',         { tier }),
+  museumCheckoutStarted: ()                              => track('museum_checkout_started'),
+  museumPaidConfirmed:   ()                              => track('museum_paid_confirmed'),
+  museumViewerOpened:    (state: string)                 => track('museum_viewer_opened',     { state }),
+  museumEntered:         (mode: string)                  => track('museum_entered',           { mode }),
+  museumFinalReveal:     (source: string, mode: string)  => track('museum_final_reveal',      { source, mode }),
+  museumCardShared:      (method: string)                => track('museum_card_shared',       { method }),
+  museumBuildOwnClicked: (from: string)                  => track('museum_build_own_clicked', { from }),
 } as const

@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { HomePage } from './pages/HomePage'
@@ -18,6 +19,15 @@ function RemixRedirect() {
   return <Navigate to={`/editor?remix=${encodeURIComponent(id ?? '')}`} replace />
 }
 
+// Museum of You lives in its own lazy chunks so the ShotPolish bundle doesn't
+// grow. The fallback matches the museum's night background to avoid a flash.
+const MuseumViewerPage = lazy(() => import('./pages/MuseumViewerPage').then((m) => ({ default: m.MuseumViewerPage })))
+const MuseumExamplePage = lazy(() => import('./pages/MuseumViewerPage').then((m) => ({ default: m.MuseumExamplePage })))
+
+function MuseumRoute({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0a1411' }} />}>{children}</Suspense>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -36,6 +46,8 @@ export default function App() {
         <Route path="/r/:id" element={<RemixRedirect />} />
         <Route path="/remix/:id" element={<RemixRedirect />} />
         <Route path="/story" element={<StoryModePage />} />
+        <Route path="/m/:slug" element={<MuseumRoute><MuseumViewerPage /></MuseumRoute>} />
+        <Route path="/museum/example" element={<MuseumRoute><MuseumExamplePage /></MuseumRoute>} />
         {/* Account/billing routes only exist when auth is live, so anonymous
             visitors can't land on a broken sign-in/upgrade page. */}
         {isSupabaseConfigured && <Route path="/settings/brand" element={<BrandKitPage />} />}

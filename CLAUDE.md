@@ -57,7 +57,9 @@ assets. Pure client-side SPA (React + Vite + TS) with a thin Supabase backend
   JWT, never the request body. `stripe-webhook` verifies signatures + dedupes via
   `stripe_events`. Preserve both invariants.
 - `src/lib/supabase.ts` falls back to dummy URL/key so the app boots without env
-  vars (dev/test). Real values come from `VITE_SUPABASE_*`.
+  vars (dev/test). Real values come from `VITE_SUPABASE_*`. ShotPolish account UI
+  (sign-in, /pricing, /account, brand kit) is gated by `accountsEnabled`
+  (`VITE_ENABLE_ACCOUNTS=true`), not by Supabase being configured.
 
 ## Large files — read targeted ranges, not whole
 These four hold >50% of source LOC. Grep for the symbol, read the range:

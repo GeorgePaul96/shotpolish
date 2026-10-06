@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { LegalPages } from './components/LegalPages'
 import PostHogPageview from './components/PostHogPageview'
-import { isSupabaseConfigured } from './lib/supabase'
+import { accountsEnabled } from './lib/supabase'
 
 // Remix loop entry: a shared watermark link (shotpolish.org/r/<templateId>)
 // hands off to the editor, which pre-applies that template. Short path keeps the
@@ -61,9 +61,9 @@ export default function App() {
         <Route path="/museum/manage/:slug" element={<MuseumRoute><MuseumManagePage /></MuseumRoute>} />
         {/* Account/billing routes only exist when auth is live, so anonymous
             visitors can't land on a broken sign-in/upgrade page. */}
-        {isSupabaseConfigured && <Route path="/settings/brand" element={<BrandKitPage />} />}
-        {isSupabaseConfigured && <Route path="/pricing" element={<PricingPage />} />}
-        {isSupabaseConfigured && <Route path="/account" element={<AccountPage />} />}
+        {accountsEnabled && <Route path="/settings/brand" element={<BrandKitPage />} />}
+        {accountsEnabled && <Route path="/pricing" element={<PricingPage />} />}
+        {accountsEnabled && <Route path="/account" element={<AccountPage />} />}
         <Route path="/privacy" element={<><Navbar /><LegalPages page="privacy" /></>} />
         <Route path="/terms" element={<><Navbar /><LegalPages page="terms" /></>} />
         {/* Catch-all: unknown paths (and disabled routes) bounce to home instead

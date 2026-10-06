@@ -12,7 +12,9 @@ import {
 } from '../_shared/museum.ts'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' })
+// Created only when configured, so free museums work before Stripe is set up.
+const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: '2024-06-20' }) : null
 const SITE = (Deno.env.get('PUBLIC_SITE_URL') || 'https://shotpolish.org').replace(/\/+$/, '')
 const BUCKET = 'museums'
 
@@ -54,6 +56,7 @@ Deno.serve(async (req) => {
     return json(200, { state: 'open', tier: 'free', expiresAt })
   }
 
+  if (!stripe) return json(503, { error: 'Paid museums aren’t available yet. Museums with up to 3 exhibits can open for free.' })
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

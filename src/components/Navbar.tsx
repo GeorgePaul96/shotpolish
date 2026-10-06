@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from './AuthProvider'
 import { AuthModal } from './AuthModal'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { accountsEnabled } from '../lib/supabase'
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -21,7 +21,7 @@ export function Navbar() {
 
   return (
     <>
-      {isSupabaseConfigured && <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />}
+      {accountsEnabled && <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />}
       <motion.header
         initial={{ y: -8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -60,7 +60,7 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               {/* Auth UI is hidden until real Supabase creds are configured, so
                   anonymous visitors never hit a broken sign-in. */}
-              {isSupabaseConfigured && (user ? (
+              {accountsEnabled && (user ? (
                 <>
                   <Link
                     to="/account"

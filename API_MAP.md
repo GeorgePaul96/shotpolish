@@ -50,7 +50,8 @@ shared CORS/JSON helpers in `_shared/http.ts`. Called from `src/lib/museum/api.t
 
 ## Environment variables
 **Client (Vite, `import.meta.env`)** — public, shipped in bundle:
-- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (dummy fallback in `lib/supabase.ts`)
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (dummy fallback in `lib/supabase.ts`); enough for Museum of You
+- `VITE_ENABLE_ACCOUNTS` (`'true'` turns on ShotPolish sign-in, `/pricing`, `/account`, brand kits; off by default via `accountsEnabled`)
 - `VITE_STRIPE_PORTAL_URL` (customer portal link)
 - `VITE_PUBLIC_URL` (production origin baked into the watermark remix link; falls back to `https://shotpolish.org` — see `src/lib/remix.ts`)
 - `VITE_PUBLIC_POSTHOG_KEY` (PostHog project API key; unset ⇒ PostHog disabled/no-op — see `src/lib/posthog.ts`)
